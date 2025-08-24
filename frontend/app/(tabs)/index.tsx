@@ -1,79 +1,256 @@
-import { Image } from 'expo-image';
-import { Platform, StyleSheet } from 'react-native';
+import React from 'react';
+import { Text, View, StyleSheet, TouchableOpacity, ScrollView } from "react-native";
+import { useRouter } from 'expo-router';
 
-import { HelloWave } from '@/components/HelloWave';
-import ParallaxScrollView from '@/components/ParallaxScrollView';
-import { ThemedText } from '@/components/ThemedText';
-import { ThemedView } from '@/components/ThemedView';
+export default function Index() {
+  const router = useRouter();
+  
+  const features = [
+    {
+      title: "Poetry Collection",
+      description: "Discover beautiful poems from various poets and traditions",
+      icon: "📖"
+    },
+    {
+      title: "Literary Works",
+      description: "Explore classic and contemporary literary masterpieces",
+      icon: "📜"
+    },
+    {
+      title: "Cultural Heritage",
+      description: "Connect with rich traditions of poetry and literature",
+      icon: "🏛️"
+    },
+    {
+      title: "Reading Experience",
+      description: "Enjoy a peaceful and immersive reading environment",
+      icon: "🌸"
+    }
+  ];
 
-export default function HomeScreen() {
   return (
-    <ParallaxScrollView
-      headerBackgroundColor={{ light: '#A1CEDC', dark: '#1D3D47' }}
-      headerImage={
-        <Image
-          source={require('@/assets/images/partial-react-logo.png')}
-          style={styles.reactLogo}
-        />
-      }>
-      <ThemedView style={styles.titleContainer}>
-        <ThemedText type="title">hello Sakshii 
-          </ThemedText>
-          <ThemedText style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
-            sami this side
-          </ThemedText>
-        <HelloWave />
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 1: Try it</ThemedText>
-        <ThemedText>
-          Edit <ThemedText type="defaultSemiBold">app/(tabs)/index.tsx</ThemedText> to see changes.
-          Press{' '}
-          <ThemedText type="defaultSemiBold">
-            {Platform.select({
-              ios: 'cmd + d',
-              android: 'cmd + m',
-              web: 'F12',
-            })}
-          </ThemedText>{' '}
-          to open developer tools.
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 2: Explore</ThemedText>
-        <ThemedText>
-          {`Tap the Explore tab to learn more about what's included in this starter app.`}
-        </ThemedText>
-      </ThemedView>
-      <ThemedView style={styles.stepContainer}>
-        <ThemedText type="subtitle">Step 3: Get a fresh start</ThemedText>
-        <ThemedText>
-          {`When you're ready, run `}
-          <ThemedText type="defaultSemiBold">npm run reset-project</ThemedText> to get a fresh{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> directory. This will move the current{' '}
-          <ThemedText type="defaultSemiBold">app</ThemedText> to{' '}
-          <ThemedText type="defaultSemiBold">app-example</ThemedText>.
-        </ThemedText>
-      </ThemedView>
-    </ParallaxScrollView>
+    <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContainer}>
+        <View style={styles.header}>
+          <View style={styles.logoContainer}>
+            <Text style={styles.logoEmoji}>📚</Text>
+          </View>
+          <Text style={styles.title}>Bhadli Kavya</Text>
+          <Text style={styles.titleGujarati}>ભદલી કાવ્ય</Text>
+          <Text style={styles.subtitle}>Beautiful Poetry Collection</Text>
+          <Text style={styles.description}>
+            Immerse yourself in the world of beautiful poetry. 
+            Discover timeless verses that touch the heart and soul.
+          </Text>
+        </View>
+
+        <View style={styles.quoteContainer}>
+          <Text style={styles.quoteText}>
+            "Poetry is the language of the heart, 
+            speaking truths that prose cannot express."
+          </Text>
+        </View>
+
+        <View style={styles.featuresContainer}>
+          <Text style={styles.featuresTitle}>Explore & Discover</Text>
+          {features.map((feature, index) => (
+            <View key={index} style={styles.featureItem}>
+              <View style={styles.featureIcon}>
+                <Text style={styles.featureIconText}>{feature.icon}</Text>
+              </View>
+              <View style={styles.featureContent}>
+                <Text style={styles.featureTitle}>{feature.title}</Text>
+                <Text style={styles.featureDescription}>{feature.description}</Text>
+              </View>
+            </View>
+          ))}
+        </View>
+
+        <TouchableOpacity 
+          style={styles.startButton}
+          onPress={() => router.push('/chat')}
+        >
+          <Text style={styles.startButtonText}>Start Reading</Text>
+          <Text style={styles.startButtonEmoji}>📖</Text>
+        </TouchableOpacity>
+
+        <View style={styles.footer}>
+          <Text style={styles.footerText}>
+            "Where beautiful words create lasting memories"
+          </Text>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  titleContainer: {
-    flexDirection: 'row',
+  container: {
+    flex: 1,
+    backgroundColor: '#f8f9fa', // Light theme background
+  },
+  scrollContainer: {
+    flexGrow: 1,
+    paddingHorizontal: 24,
+    paddingVertical: 32,
+  },
+  header: {
     alignItems: 'center',
-    gap: 8,
+    marginBottom: 32,
   },
-  stepContainer: {
-    gap: 8,
+  logoContainer: {
+    width: 90,
+    height: 90,
+    backgroundColor: '#4A90E2',
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+    elevation: 8,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.15,
+    shadowRadius: 8,
+  },
+  logoEmoji: {
+    fontSize: 40,
+  },
+  title: {
+    fontSize: 36,
+    fontWeight: 'bold',
+    color: '#2c3e50',
+    marginBottom: 4,
+    textAlign: 'center',
+  },
+  titleGujarati: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#4A90E2',
     marginBottom: 8,
+    textAlign: 'center',
   },
-  reactLogo: {
-    height: 178,
-    width: 290,
-    bottom: 0,
-    left: 0,
-    position: 'absolute',
+  subtitle: {
+    fontSize: 20,
+    color: '#34495e',
+    textAlign: 'center',
+    fontWeight: '500',
+    marginBottom: 16,
+  },
+  description: {
+    fontSize: 16,
+    color: '#5a6c7d',
+    textAlign: 'center',
+    lineHeight: 24,
+    paddingHorizontal: 16,
+  },
+  quoteContainer: {
+    backgroundColor: '#ffffff',
+    padding: 20,
+    borderRadius: 16,
+    borderLeftWidth: 4,
+    borderLeftColor: '#4A90E2',
+    marginBottom: 32,
+    elevation: 4,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+  },
+  quoteText: {
+    fontSize: 18,
+    color: '#2c3e50',
+    fontStyle: 'italic',
+    textAlign: 'center',
+    lineHeight: 26,
+  },
+  featuresContainer: {
+    marginBottom: 40,
+  },
+  featuresTitle: {
+    fontSize: 24,
+    fontWeight: '600',
+    color: '#2c3e50',
+    marginBottom: 24,
+    textAlign: 'center',
+  },
+  featureItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 20,
+    backgroundColor: '#ffffff',
+    padding: 20,
+    borderRadius: 16,
+    borderWidth: 1,
+    borderColor: '#e1e8ed',
+    elevation: 3,
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.08,
+    shadowRadius: 6,
+  },
+  featureIcon: {
+    width: 50,
+    height: 50,
+    backgroundColor: '#e8f3ff',
+    borderRadius: 25,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 16,
+    borderWidth: 2,
+    borderColor: '#4A90E2',
+  },
+  featureIconText: {
+    fontSize: 24,
+  },
+  featureContent: {
+    flex: 1,
+  },
+  featureTitle: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: '#2c3e50',
+    marginBottom: 6,
+  },
+  featureDescription: {
+    fontSize: 15,
+    color: '#5a6c7d',
+    lineHeight: 22,
+  },
+  startButton: {
+    backgroundColor: '#4A90E2',
+    paddingVertical: 18,
+    paddingHorizontal: 32,
+    borderRadius: 16,
+    alignItems: 'center',
+    marginBottom: 32,
+    elevation: 8,
+    shadowColor: '#4A90E2',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  startButtonText: {
+    color: '#ffffff',
+    fontSize: 18,
+    fontWeight: '600',
+    marginRight: 8,
+  },
+  startButtonEmoji: {
+    fontSize: 20,
+  },
+  footer: {
+    alignItems: 'center',
+    paddingTop: 20,
+    borderTopWidth: 1,
+    borderTopColor: '#e1e8ed',
+  },
+  footerText: {
+    fontSize: 16,
+    color: '#4A90E2',
+    textAlign: 'center',
+    fontStyle: 'italic',
+    fontWeight: '500',
   },
 });

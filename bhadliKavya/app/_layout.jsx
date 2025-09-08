@@ -3,7 +3,7 @@ import "../global.css";
 
 export default function RootLayout() {
     return (
-        <Stack>
+        <Stack screenOptions={{ headerShown: false }}>
             <Stack.Screen name="index" options={{ headerShown: false }} />
             <Stack.Screen name="signup" options={{ title: "Sign Up" }} />
             <Stack.Screen name="login" options={{ title: "Login" }} />

@@ -7,15 +7,45 @@ export default function SignUp() {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
 
-    const handleSignUp = () => {
+    // const handleSignUp = () => {
+    //     if (password !== confirmPassword) {
+    //         Alert.alert('Error', 'Passwords do not match');
+    //         return;
+    //     }
+    //     // Here you would typically handle the signup logic
+    //     Alert.alert('Success', 'Account created successfully');
+    //     router.push('/home');
+    // };
+
+    const handleSignUp = async () => {
         if (password !== confirmPassword) {
             Alert.alert('Error', 'Passwords do not match');
             return;
         }
-        // Here you would typically handle the signup logic
-        Alert.alert('Success', 'Account created successfully');
-        router.push('/home');
+
+        try {
+            const response = await fetch("http://127.0.0.1:8000/users/signup", {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email, password }),
+            });
+
+            if (response.ok) {
+                const data = await response.json();
+                Alert.alert('Success', `Account created: ${data.email}`);
+                router.push('/home');
+            } else {
+                const error = await response.json();
+                Alert.alert('Error', error.detail || "Something went wrong");
+            }
+        } catch (err) {
+            Alert.alert("Error", "Could not connect to server");
+            console.error(err);
+        }
     };
+
 
     return (
         <View className="flex-1 justify-center bg-gray-50 px-6">

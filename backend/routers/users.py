@@ -1,5 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from .. import models, schemas
+import models
+import schemas
 
 router = APIRouter(
     prefix="/users",
@@ -8,11 +9,80 @@ router = APIRouter(
 
 @router.post("/signup", response_model=schemas.UserOut)
 def signup(user: schemas.UserCreate):
-    db_user = models.get_user_by_email(user.email)
-    if db_user:
-        raise HTTPException(status_code=400, detail="Email already registered")
-    return models.create_user(user.email, user.password)
+    try:
+        print(f"📝 Signup request: {user.email}, UID: {user.uid}, Provider: {user.auth_provider}")
+        
+        # Check if user already exists by email
+        db_user = models.get_user_by_email(user.email)
+        if db_user:
+            print(f"❌ Email already exists: {user.email}")
+            raise HTTPException(status_code=400, detail="Email already registered")
+        
+        # For users with UID (Firebase), also check by UID
+        if user.uid:
+            db_user_uid = models.get_user_by_uid(user.uid)
+            if db_user_uid:
+                print(f"❌ UID already exists: {user.uid}")
+                raise HTTPException(status_code=400, detail="User already registered with this UID")
+        
+        # Create new user
+        new_user = models.create_user(
+            email=user.email,
+            password=user.password,
+            name=user.name,
+            uid=user.uid,
+            auth_provider=user.auth_provider,
+            photoURL=user.photoURL
+        )
+        
+        print(f"✅ User created successfully: {new_user}")
+        return new_user
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Signup error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
+
+@router.post("/login")
+def login(user: schemas.UserLogin):
+    try:
+        print(f"🔐 Login request: {user.email}")
+        
+        db_user = models.get_user_by_email(user.email)
+        if not db_user:
+            print(f"❌ User not found: {user.email}")
+            raise HTTPException(status_code=400, detail="Invalid credentials")
+        
+        if db_user["auth_provider"] == "email":
+            if not models.verify_password(user.password, db_user["password"]):
+                print(f"❌ Invalid password for: {user.email}")
+                raise HTTPException(status_code=400, detail="Invalid credentials")
+        
+        print(f"✅ Login successful: {user.email}")
+        return {
+            "message": "Login successful",
+            "user": {
+                "id": db_user["id"],
+                "email": db_user["email"],
+                "name": db_user["name"],
+                "uid": db_user["uid"],
+                "auth_provider": db_user["auth_provider"],
+                "photoURL": db_user["photoURL"]
+            }
+        }
+        
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ Login error: {str(e)}")
+        raise HTTPException(status_code=500, detail=f"Internal server error: {str(e)}")
 
 @router.get("/", response_model=list[schemas.UserOut])
 def list_users():
-    return models.get_users()
+    try:
+        users = models.get_users()
+        return users
+    except Exception as e:
+        print(f"❌ Error listing users: {str(e)}")
+        raise HTTPException(status_code=500, detail="Internal server error")

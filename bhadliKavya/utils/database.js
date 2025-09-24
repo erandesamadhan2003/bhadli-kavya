@@ -37,7 +37,10 @@ export const getUserFromFirestore = async (uid) => {
 
 export const saveUserToBackend = async (userData) => {
     try {
-        const response = await fetch("http://127.0.0.1:8000/users/signup", {
+        console.log('💾 Saving to backend:', userData.email);
+        
+        // For mobile testing, use your computer's IP address
+        const response = await fetch("http://10.174.186.27:8000/users/signup", {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
@@ -47,7 +50,7 @@ export const saveUserToBackend = async (userData) => {
                 password: userData.authProvider === 'google' ? 'google_oauth' : userData.password,
                 name: userData.name || userData.displayName,
                 uid: userData.uid,
-                auth_provider: userData.authProvider || 'google',
+                auth_provider: userData.authProvider || 'email',
                 photoURL: userData.photoURL
             }),
         });
@@ -57,9 +60,12 @@ export const saveUserToBackend = async (userData) => {
             throw new Error(error.detail || "Backend registration failed");
         }
 
-        return await response.json();
+        const result = await response.json();
+        console.log('✅ Backend save result:', result);
+        
+        return result;
     } catch (error) {
-        console.error('Error saving user to backend:', error);
+        console.error('❌ Backend save error:', error);
         throw error;
     }
 };

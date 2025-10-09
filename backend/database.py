@@ -1,9 +1,11 @@
 import mysql.connector
-import os
 from dotenv import load_dotenv
+import os
 
-# Load environment variables
-load_dotenv()
+# Load the .env file from the parent directory of backend
+env_path = os.path.join(os.path.dirname(__file__), '..', '.env')
+load_dotenv(dotenv_path=env_path)
+
 
 DB_CONFIG = {
     'host': os.getenv('DB_HOST', 'localhost'),
@@ -24,6 +26,7 @@ def get_connection():
 
 def init_db():
     try:
+        print("🔍 Loaded DB Config:", DB_CONFIG)
         # First connect without database to create it if it doesn't exist
         temp_config = DB_CONFIG.copy()
         database_name = temp_config.pop('database')
@@ -50,6 +53,18 @@ def init_db():
         )
         """)
         
+         # calendar table (for CSV)
+        # calendar table (for CSV)
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS calendar (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            vikram_samvat_date VARCHAR(255),
+            gregorian_date VARCHAR(255),
+            calendar_type VARCHAR(50)
+        )
+        """)
+
+        
         conn.commit()
         conn.close()
         print("✅ Database and tables created successfully")
@@ -57,3 +72,5 @@ def init_db():
     except mysql.connector.Error as err:
         print(f"❌ Database initialization error: {err}")
         raise
+
+

@@ -1,7 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from routers import users
-import database
+from .routers import users, upload, calendar
+# import database
+from . import database
+
 
 # Initialize database on startup
 database.init_db()
@@ -19,6 +21,9 @@ app.add_middleware(
 
 # Include routers
 app.include_router(users.router)
+app.include_router(upload.router)
+app.include_router(calendar.router)
+
 
 @app.get("/")
 def read_root():

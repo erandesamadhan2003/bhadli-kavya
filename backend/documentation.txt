@@ -1,0 +1,178 @@
+📘 Calendar API Documentation
+
+Project: Bhadali Kavya Backend
+Framework: FastAPI
+Database: MySQL
+Calendars Supported: Hindi, Gujarati, Bengali
+
+
+🚀 Base URL
+
+http://127.0.0.1:8000
+
+🧭 1. Get Calendar of a Month
+Endpoint
+GET /calendar/month/
+
+
+Description
+
+Retrieves all dates (Vikram Samvat/Bengali month date with corresponding Gregorian date) for a given month and year of the specified calendar type.
+
+Query Parameters
+| Name            | Type     | Required | Description                                                            |
+| --------------- | -------- | -------- | ---------------------------------------------------------------------- |
+| `year`          | `string` | ✅        | Year of the Vikram Samvat or Bengali calendar (e.g., `2036` or `1387`) |
+| `month`         | `string` | ✅        | Month name (e.g., `Maha`, `Magh`, `Falgun`)                            |
+| `calendar_type` | `string` | ❌        | One of `hindi`, `gujarati`, or `bengali` (default: `hindi`)            |
+
+Example Request
+
+GET /calendar/month/?year=1387&month=Magh&calendar_type=bengali
+
+
+Example Response
+{
+  "vikram_samvat_month": "Magh 1387",
+  "calendar_type": "bengali",
+  "total_days": 30,
+  "dates": [
+    {
+      "vikram_samvat_date": "1 , Magh (Maagh) 1387",
+      "gregorian_date": "1980-01-15"
+    },
+    {
+      "vikram_samvat_date": "2 , Magh (Maagh) 1387",
+      "gregorian_date": "1980-01-16"
+    }
+  ]
+}
+
+
+Error Responses
+| Code  | Message                          |
+| ----- | -------------------------------- |
+| `400` | `"Invalid calendar type"`        |
+| `404` | `"No data found for this month"` |
+| `500` | `"Internal server error"`        |
+
+
+🗂️ 2. Upload Calendar CSV File
+Endpoint
+POST /upload-csv/
+
+
+Description
+
+Uploads and stores CSV data into the respective calendar table (Hindi, Gujarati, or Bengali).
+
+
+Form Data Parameters
+
+| Name            | Type     | Required | Description                                      |
+| --------------- | -------- | -------- | ------------------------------------------------ |
+| `file`          | `file`   | ✅        | The CSV file to upload                           |
+| `calendar_type` | `string` | ✅        | Calendar type: `hindi`, `gujarati`, or `bengali` |
+
+
+Example Request (Postman)
+
+Method: POST
+URL: http://127.0.0.1:8000/upload-csv/?calendar_type=bengali
+
+
+Body → form-data:
+| Key           | Type | Value             |
+| ------------- | ---- | ----------------- |
+| file          | File | *Select CSV file* |
+| calendar_type | Text | `bengali`         |
+
+
+Example Response
+{
+  "message": "Data uploaded to bengali_calendar successfully"
+}
+
+
+
+👤 3. User Signup
+Endpoint
+POST /users/signup
+
+
+Description
+
+Registers a new user either through email/password or external provider (Firebase, Google, etc.)
+
+Request Body
+{
+  "email": "testuser@gmail.com",
+  "password": "securepass123",
+  "name": "Test User",
+  "uid": "firebase_uid_12345",
+  "auth_provider": "email",
+  "photoURL": "https://example.com/photo.png"
+}
+
+
+Example Response
+{
+  "id": 1,
+  "email": "testuser@gmail.com",
+  "name": "Test User",
+  "uid": "firebase_uid_12345",
+  "auth_provider": "email",
+  "photoURL": "https://example.com/photo.png",
+  "created_at": "2025-10-09T08:25:00Z"
+}
+
+
+🔑 5. User Login Verification
+Endpoint
+POST /users/login
+
+
+Description
+
+Verifies user credentials for email/password-based authentication.
+
+Request Body
+{
+  "email": "testuser@gmail.com",
+  "password": "securepass123"
+}
+
+
+Example Response
+{
+  "message": "Login successful",
+  "user": {
+    "id": 1,
+    "email": "testuser@gmail.com",
+    "name": "Test User",
+    "uid": "firebase_uid_12345",
+    "auth_provider": "email"
+  }
+}
+
+
+
+
+🧰 Setup & Run Server
+1️⃣ Activate Virtual Environment
+
+venv\bin\activate
+
+
+2️⃣ Run Server
+
+uvicorn backend.main:app --reload
+
+
+3️⃣ Output (Expected)
+
+🔍 Loaded DB Config: {'host': 'localhost', 'port': 3306, 'user': 'root', ...}
+✅ Database and tables created successfully
+INFO:     Uvicorn running on http://127.0.0.1:8000
+
+

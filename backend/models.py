@@ -4,6 +4,7 @@ from typing import Optional
 import mysql.connector
 import csv
 from datetime import datetime
+import uuid
 
 def create_user(email: str, password: str, name: Optional[str] = None, 
                 uid: Optional[str] = None, auth_provider: str = "email", 
@@ -117,7 +118,7 @@ def insert_csv_into_calendar(file_path, calendar_type):
         for row in reader:
             raw_date = row["gregorian_Date"].strip().strip('"')
             try:
-                parsed_date = datetime.strptime(raw_date, "%d/%m/%Y").date()
+                parsed_date = datetime.strptime(raw_date, "%b %d, %Y").date()
             except ValueError:
                 raise ValueError(f"Invalid date format: {raw_date}")
 
@@ -161,3 +162,103 @@ def get_calendar_of_month(year: str, month: str, calendar_type: str = "hindi"):
     conn.close()
 
     return result
+
+
+
+def save_message(user_id: int, role: str, content: str):
+    conn = database.get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    message_id = str(uuid.uuid4())
+    cursor.execute("""
+        INSERT INTO messages (message_id, user_id, role, content)
+        VALUES (%s, %s, %s, %s)
+    """, (message_id, user_id, role, content))
+    conn.commit()
+
+    cursor.execute("SELECT * FROM messages WHERE message_id = %s", (message_id,))
+    message = cursor.fetchone()
+    conn.close()
+    return message
+
+
+def get_last_messages(user_id: int, limit: int = 2):
+    conn = database.get_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT role, content FROM messages
+        WHERE user_id = %s
+        ORDER BY created_at DESC
+        LIMIT %s
+    """, (user_id, limit))
+    messages = cursor.fetchall()
+    conn.close()
+    return list(reversed(messages))
+
+
+def get_messages(user_id: int, limit: int, before: str):
+    conn = database.get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    if before:
+        cursor.execute("""
+            SELECT * FROM messages
+            WHERE user_id = %s AND created_at < %s
+            ORDER BY created_at DESC
+            LIMIT %s
+        """, (user_id, before, limit))
+    else:
+        cursor.execute("""
+            SELECT * FROM messages
+            WHERE user_id = %s
+            ORDER BY created_at DESC
+            LIMIT %s
+        """, (user_id, limit))
+
+    messages = cursor.fetchall()
+    conn.close()
+    return messages
+
+
+def delete_message(message_id: str, user_id: int):
+    conn = database.get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        DELETE FROM messages
+        WHERE message_id = %s AND user_id = %s
+    """, (message_id, user_id))
+
+    affected_rows = cursor.rowcount
+    conn.commit()
+    conn.close()
+
+    return affected_rows > 0
+
+
+def get_user_by_google_id(google_id: str):
+    conn = database.get_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("SELECT * FROM users WHERE uid = %s", (google_id,))
+    user = cursor.fetchone()
+    conn.close()
+    return user
+
+
+def create_google_user(google_id: str, email: str, name: str, photoURL: str):
+    conn = database.get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+        INSERT INTO users (email, password, name, uid, auth_provider, photoURL)
+        VALUES (%s, %s, %s, %s, %s, %s)
+    """, (email, "", name, google_id, "google", photoURL))
+
+    conn.commit()
+
+    cursor.execute("SELECT id, email, name, uid, auth_provider, photoURL FROM users WHERE uid = %s", (google_id,))
+    user = cursor.fetchone()
+    conn.close()
+    return user
+
+

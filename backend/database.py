@@ -63,6 +63,32 @@ def init_db():
             calendar_type VARCHAR(50)
         )
         """)
+        
+        # Create messages table
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS messages (
+            message_id CHAR(36) PRIMARY KEY,
+            user_id INT NOT NULL,
+            role VARCHAR(10) NOT NULL CHECK (role IN ('user', 'model')),
+            content TEXT NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
+        )
+        """)
+
+        # ✅ Fix for MySQL index creation
+        cursor.execute("""
+            SELECT COUNT(*) FROM information_schema.statistics 
+            WHERE table_schema = DATABASE() 
+            AND table_name = 'messages' 
+            AND index_name = 'idx_messages_user_id_created_at'
+        """)
+        index_exists = cursor.fetchone()[0]
+        if not index_exists:
+            cursor.execute("""
+                CREATE INDEX idx_messages_user_id_created_at
+                ON messages(user_id, created_at DESC)
+            """)
 
         
         conn.commit()

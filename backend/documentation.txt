@@ -12,6 +12,10 @@ Activate virtual environment
 i. cd backend
 ii. venv\bin\activate
 
+Install required dependencies
+command:
+pip install -r requirements.txt
+
 Run server
 uvicorn uvicorn main:app --reload
 

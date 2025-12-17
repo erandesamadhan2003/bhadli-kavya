@@ -1,5 +1,42 @@
+# ===============================
+# Core FastAPI stack
+# ===============================
 fastapi==0.104.1
 uvicorn==0.24.0
+
+# ===============================
+# Data validation & schemas
+# ===============================
 pydantic==2.5.0
+pydantic-settings==2.1.0
+
+# ===============================
+# Authentication & Security
+# ===============================
 passlib[bcrypt]==1.7.4
+python-jose==3.3.0
+
+# ===============================
+# File upload & form handling
+# ===============================
 python-multipart==0.0.6
+
+# ===============================
+# Database (MySQL)
+# ===============================
+mysql-connector-python==8.2.0
+
+# ===============================
+# Environment variables
+# ===============================
+python-dotenv==1.0.0
+
+# ===============================
+# Date & time utilities
+# ===============================
+python-dateutil==2.8.2
+
+# ===============================
+# Optional (recommended for prod)
+# ===============================
+email-validator==2.1.0.post1

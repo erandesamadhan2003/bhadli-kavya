@@ -1,11 +1,15 @@
 from fastapi import HTTPException, Header
 import jwt
+from datetime import datetime, timedelta
 
-JWT_SECRET = "YOUR_JWT_SECRET"
+JWT_SECRET = "bhadlikavyasecretkey"
 ALGO = "HS256"
 
 def create_jwt(user_id: int):
-    payload = {"sub": str(user_id)}
+    payload = {
+        "sub": str(user_id),
+        "exp": datetime.utcnow() + timedelta(days=7)  # Token valid for 7 days
+    }
     return jwt.encode(payload, JWT_SECRET, algorithm=ALGO)
 
 

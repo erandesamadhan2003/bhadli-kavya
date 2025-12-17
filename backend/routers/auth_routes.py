@@ -4,12 +4,12 @@ from google.oauth2 import id_token
 from google.auth.transport import requests
 from datetime import datetime, timedelta
 import jwt
-from .. import models, auth
+import models, auth
 
 router = APIRouter(prefix="/api/auth", tags=["auth"])
 
-GOOGLE_CLIENT_ID = "YOUR_GOOGLE_CLIENT_ID"
-JWT_SECRET = "YOUR_JWT_SECRET"
+GOOGLE_CLIENT_ID = "460140873905-q11gn9dkgaa26j20sj5kpk5aeulhb0tu.apps.googleusercontent.com"
+JWT_SECRET = "bhadlikavyasecretkey"
 ALGO = "HS256"
 
 

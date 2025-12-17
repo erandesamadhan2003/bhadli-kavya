@@ -1,7 +1,7 @@
 from fastapi import APIRouter, UploadFile, File,Form, HTTPException
 import shutil
 import os
-from backend import models
+import models
 
 router = APIRouter()
 

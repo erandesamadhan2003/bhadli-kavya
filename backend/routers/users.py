@@ -1,6 +1,6 @@
 from fastapi import APIRouter, HTTPException
-from .. import models
-from .. import schemas
+import models
+import schemas
 
 router = APIRouter(
     prefix="/users",
@@ -54,7 +54,9 @@ def signup(user: schemas.UserCreate):
             name=user.name,
             uid=user.uid,
             auth_provider=user.auth_provider,
-            photoURL=user.photoURL
+            photoURL=user.photoURL,
+            location=user.location,
+            calendar_preference=user.calendar_preference
         )
         
         print(f"✅ User created successfully: {new_user['email']}")
@@ -87,13 +89,15 @@ def login(user: schemas.UserLogin):
                 print(f"❌ Invalid password for: {user.email}")
                 raise HTTPException(status_code=400, detail="Invalid credentials")
         
-        # Update last login time
-        if db_user.get("uid"):
-            models.update_user_login_time(db_user["uid"])
-        
+        # ✅ Create JWT token
+        from .. import auth
+        access_token = auth.create_jwt(db_user["id"])
+
         print(f"✅ Login successful: {user.email}")
         return {
             "message": "Login successful",
+            "access_token": access_token,
+            "token_type": "bearer",
             "user": {
                 "id": db_user["id"],
                 "email": db_user["email"],

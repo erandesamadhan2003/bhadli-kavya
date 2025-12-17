@@ -1,178 +1,320 @@
-📘 Calendar API Documentation
+DOCUMENTATION.TXT
+PROJECT: Bhadli Kavya – Backend APIs
+FRAMEWORK: FastAPI
+DATABASE: MySQL
+AUTHENTICATION: JWT (Bearer Token)
 
-Project: Bhadali Kavya Backend
-Framework: FastAPI
-Database: MySQL
-Calendars Supported: Hindi, Gujarati, Bengali
+
+==================================================
+SERVER RUN INSTRUCTIONS
+
+Activate virtual environment
+i. cd backend
+ii. venv\bin\activate
+
+Run server
+uvicorn uvicorn main:app --reload
+
+EXPECTED OUTPUT
+
+Database and tables created successfully
+Uvicorn running on http://127.0.0.1:8000
+
+==================================================
 
 
-🚀 Base URL
+###############  API Docs  ##########################
 
+BASE URL
 http://127.0.0.1:8000
 
-🧭 1. Get Calendar of a Month
-Endpoint
-GET /calendar/month/
+==================================================
+AUTHENTICATION OVERVIEW
 
+• Login returns a JWT access token
+• All protected APIs require the following header:
 
-Description
+Authorization: Bearer <ACCESS_TOKEN>
 
-Retrieves all dates (Vikram Samvat/Bengali month date with corresponding Gregorian date) for a given month and year of the specified calendar type.
+==================================================
 
-Query Parameters
-| Name            | Type     | Required | Description                                                            |
-| --------------- | -------- | -------- | ---------------------------------------------------------------------- |
-| `year`          | `string` | ✅        | Year of the Vikram Samvat or Bengali calendar (e.g., `2036` or `1387`) |
-| `month`         | `string` | ✅        | Month name (e.g., `Maha`, `Magh`, `Falgun`)                            |
-| `calendar_type` | `string` | ❌        | One of `hindi`, `gujarati`, or `bengali` (default: `hindi`)            |
+USER SIGNUP
+==================================================
 
-Example Request
-
-GET /calendar/month/?year=1387&month=Magh&calendar_type=bengali
-
-
-Example Response
-{
-  "vikram_samvat_month": "Magh 1387",
-  "calendar_type": "bengali",
-  "total_days": 30,
-  "dates": [
-    {
-      "vikram_samvat_date": "1 , Magh (Maagh) 1387",
-      "gregorian_date": "1980-01-15"
-    },
-    {
-      "vikram_samvat_date": "2 , Magh (Maagh) 1387",
-      "gregorian_date": "1980-01-16"
-    }
-  ]
-}
-
-
-Error Responses
-| Code  | Message                          |
-| ----- | -------------------------------- |
-| `400` | `"Invalid calendar type"`        |
-| `404` | `"No data found for this month"` |
-| `500` | `"Internal server error"`        |
-
-
-🗂️ 2. Upload Calendar CSV File
-Endpoint
-POST /upload-csv/
-
-
-Description
-
-Uploads and stores CSV data into the respective calendar table (Hindi, Gujarati, or Bengali).
-
-
-Form Data Parameters
-
-| Name            | Type     | Required | Description                                      |
-| --------------- | -------- | -------- | ------------------------------------------------ |
-| `file`          | `file`   | ✅        | The CSV file to upload                           |
-| `calendar_type` | `string` | ✅        | Calendar type: `hindi`, `gujarati`, or `bengali` |
-
-
-Example Request (Postman)
-
-Method: POST
-URL: http://127.0.0.1:8000/upload-csv/?calendar_type=bengali
-
-
-Body → form-data:
-| Key           | Type | Value             |
-| ------------- | ---- | ----------------- |
-| file          | File | *Select CSV file* |
-| calendar_type | Text | `bengali`         |
-
-
-Example Response
-{
-  "message": "Data uploaded to bengali_calendar successfully"
-}
-
-
-
-👤 3. User Signup
-Endpoint
+ENDPOINT
 POST /users/signup
 
+DESCRIPTION
+Creates a new user. Supports storing user location and calendar preference.
 
-Description
+HEADERS
+Content-Type: application/json
 
-Registers a new user either through email/password or external provider (Firebase, Google, etc.)
+REQUEST BODY (JSON)
 
-Request Body
 {
-  "email": "testuser@gmail.com",
-  "password": "securepass123",
-  "name": "Test User",
-  "uid": "firebase_uid_12345",
-  "auth_provider": "email",
-  "photoURL": "https://example.com/photo.png"
+"email": "test@test.com
+",
+"password": "test@123",
+"name": "Test User",
+"uid": null,
+"auth_provider": "email",
+"photoURL": null,
+"location": "Gujarat",
+"calendar_preference": "gujarati"
 }
 
+FIELD DETAILS
 
-Example Response
+email REQUIRED User email
+password REQUIRED Plain password (hashed in backend)
+name OPTIONAL User display name
+uid OPTIONAL Firebase / OAuth UID
+auth_provider OPTIONAL Default: email
+photoURL OPTIONAL Profile image URL
+location OPTIONAL State name (Gujarat, Rajasthan, etc.)
+calendar_preference OPTIONAL hindi | gujarati | bengali | rajasthani | gregorian
+
+SUCCESS RESPONSE (201)
+
 {
-  "id": 1,
-  "email": "testuser@gmail.com",
-  "name": "Test User",
-  "uid": "firebase_uid_12345",
-  "auth_provider": "email",
-  "photoURL": "https://example.com/photo.png",
-  "created_at": "2025-10-09T08:25:00Z"
+"message": "User created successfully",
+"user": {
+"id": 3,
+"email": "test@test.com
+",
+"name": "Test User",
+"uid": null,
+"auth_provider": "email",
+"photoURL": null,
+"location": "Gujarat",
+"calendar_preference": "gujarati",
+"created_at": "2025-12-17T21:32:08"
+},
+"status": "created"
 }
 
+ERROR RESPONSES
 
-🔑 5. User Login Verification
-Endpoint
+400 Email already registered
+500 Internal server error
+
+==================================================
+2. USER LOGIN
+
+ENDPOINT
 POST /users/login
 
+HEADERS
+Content-Type: application/json
 
-Description
+REQUEST BODY
 
-Verifies user credentials for email/password-based authentication.
-
-Request Body
 {
-  "email": "testuser@gmail.com",
-  "password": "securepass123"
+"email": "test@test.com
+",
+"password": "test@123"
 }
 
+SUCCESS RESPONSE
 
-Example Response
 {
-  "message": "Login successful",
-  "user": {
-    "id": 1,
-    "email": "testuser@gmail.com",
-    "name": "Test User",
-    "uid": "firebase_uid_12345",
-    "auth_provider": "email"
-  }
+"message": "Login successful",
+"access_token": "JWT_TOKEN_HERE",
+"token_type": "bearer",
+"user": {
+"id": 3,
+"email": "test@test.com
+",
+"name": "Test User",
+"uid": null,
+"auth_provider": "email",
+"photoURL": null
+}
 }
 
+ERROR RESPONSES
 
+400 Invalid credentials
+500 Internal server error
 
+==================================================
+3. UPLOAD CALENDAR CSV
 
-🧰 Setup & Run Server
-1️⃣ Activate Virtual Environment
+ENDPOINT
+POST /api/calendar/upload-csv
 
-venv\bin\activate
+HEADERS
+Content-Type: multipart/form-data
 
+BODY (form-data)
 
-2️⃣ Run Server
+Key Type Required Description
+file File YES Calendar CSV file
 
-uvicorn backend.main:app --reload
+CSV MUST HAVE THESE EXACT COLUMNS
 
+gregorian_date,day,Hindi_Date,Gujarati_Date,Bengali_Date,Rajasthani_Date
 
-3️⃣ Output (Expected)
+SUCCESS RESPONSE
 
-🔍 Loaded DB Config: {'host': 'localhost', 'port': 3306, 'user': 'root', ...}
-✅ Database and tables created successfully
-INFO:     Uvicorn running on http://127.0.0.1:8000
+{
+"message": "Calendar CSV uploaded successfully",
+"rows_processed": 365
+}
 
+ERROR RESPONSES
+
+400 Only CSV files allowed
+500 Internal server error
+
+==================================================
+4. GET CALENDAR OF A MONTH (MANUAL)
+
+ENDPOINT
+GET /api/calendar/month
+
+HEADERS
+Authorization: Bearer <ACCESS_TOKEN>
+
+QUERY PARAMETERS
+
+year REQUIRED Gregorian year (e.g. 1980)
+month REQUIRED Gregorian month (1–12)
+calendar OPTIONAL gregorian | hindi | gujarati | bengali | rajasthani
+
+EXAMPLE REQUEST
+
+GET /api/calendar/month?year=1980&month=1&calendar=rajasthani
+
+SUCCESS RESPONSE
+
+{
+"calendar": "rajasthani",
+"year": 1980,
+"month": 1,
+"total_days": 29,
+"dates": [
+{
+"gregorian_date": "1980-01-03",
+"day": "Thursday",
+"regional_date": "1 Magha 2036"
+}
+]
+}
+
+ERROR RESPONSES
+
+400 Invalid calendar type
+500 Internal server error
+
+==================================================
+5. GET CALENDAR FOR LOGGED-IN USER (AUTO)
+
+ENDPOINT
+GET /api/calendar/me
+
+HEADERS
+Authorization: Bearer <ACCESS_TOKEN>
+
+LOGIC USED BY BACKEND
+
+calendar_preference (if present)
+
+else location-based calendar
+
+else default gregorian
+
+SUCCESS RESPONSE
+
+{
+"calendar": "gujarati",
+"year": 2025,
+"month": 12,
+"total_days": 31,
+"dates": [
+{
+"gregorian_date": "2025-12-01",
+"day": "Monday",
+"regional_date": "16 Magha 2082"
+}
+]
+}
+
+==================================================
+6. SEND CHAT MESSAGE
+
+ENDPOINT
+POST /api/chat/send
+
+HEADERS
+Authorization: Bearer <ACCESS_TOKEN>
+Content-Type: application/json
+
+REQUEST BODY
+
+{
+"message": "Hello AI!",
+"session_id": null
+}
+
+SUCCESS RESPONSE
+
+{
+"modelResponse": {
+"message_id": "uuid",
+"user_id": 2,
+"role": "model",
+"content": "Hello AI! + This is an AI automated response",
+"created_at": "2025-12-17T22:15:19"
+}
+}
+
+==================================================
+7. GET CHAT HISTORY
+
+ENDPOINT
+GET /api/chat/history
+
+HEADERS
+Authorization: Bearer <ACCESS_TOKEN>
+
+QUERY PARAMETERS
+
+limit OPTIONAL Number of messages (default 10)
+before OPTIONAL Timestamp for pagination
+
+SUCCESS RESPONSE
+
+[
+{
+"role": "user",
+"content": "Hello AI!"
+},
+{
+"role": "model",
+"content": "Hello AI! + This is an AI automated response"
+}
+]
+
+==================================================
+8. DELETE CHAT MESSAGE
+
+ENDPOINT
+DELETE /api/chat/message/{message_id}
+
+HEADERS
+Authorization: Bearer <ACCESS_TOKEN>
+
+SUCCESS RESPONSE
+
+{
+"status": "deleted",
+"message_id": "uuid"
+}
+
+ERROR RESPONSES
+
+403 Message belongs to another user
+404 Message not found
 

@@ -1,37 +1,52 @@
-from fastapi import APIRouter, Query
-from .. import models
+from fastapi import APIRouter, UploadFile, File, HTTPException, Query, Depends
+import csv
+from datetime import datetime
+import models, auth
 
-router = APIRouter(
-    prefix="/calendar",
-    tags=["calendar"]
-)
+router = APIRouter(prefix="/api/calendar", tags=["calendar"])
 
-@router.get("/month/")
-def get_calendar_of_month(
-    year: str = Query(..., description="Year in Vikram Samvat"),
-    month: str = Query(..., description="Month in Vikram Samvat"),
-    calendar_type: str = Query("hindi", description="Calendar type: hindi or gujarati")
-):
+@router.post("/upload-csv")
+def upload_calendar_csv(file: UploadFile = File(...)):
+    if not file.filename.endswith(".csv"):
+        raise HTTPException(status_code=400, detail="Only CSV files allowed")
+
     try:
-        data = models.get_calendar_of_month(year, month, calendar_type)
-    except ValueError as e:
-        return {"error": str(e)}
+        content = file.file.read().decode("utf-8").splitlines()
+        reader = csv.DictReader(content)
 
-    if not data:
-        return {"message": "No data found for this month"}
+        inserted = 0
+        for row in reader:
+            models.insert_calendar_row(row)
+            inserted += 1
 
-    # Combine both date fields neatly
-    dates_list = [
-        {
-            "vikram_samvat_date": item["vikram_samvat_date"],
-            "gregorian_date": item["gregorian_date"]
+        return {
+            "message": "Calendar CSV uploaded successfully",
+            "rows_processed": inserted
         }
-        for item in data
-    ]
 
-    return {
-        "vikram_samvat_month": f"{month} {year}",
-        "calendar_type": calendar_type,
-        "total_days": len(dates_list),
-        "dates": dates_list
-    }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+    
+    
+    
+    
+# --------------------------------------------------
+# 6.1 GET /api/calendar/month
+# --------------------------------------------------
+@router.get("/month")
+def get_calendar_month(
+    year: int,
+    month: int,
+    calendar: str = "gregorian"
+):
+    return models.get_calendar_month(year, month, calendar)
+
+
+
+# --------------------------------------------------
+# 6.2 GET /api/calendar/me
+# --------------------------------------------------
+@router.get("/me")
+def get_my_calendar(user_id: int = Depends(auth.get_current_user_id)):
+    return models.get_calendar_for_user(user_id)
+

@@ -1,0 +1,179 @@
+{
+  "info": {
+    "name": "Bhadli Kavya Backend API",
+    "description": "Postman collection for Bhadli Kavya backend (FastAPI + MySQL)",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "Auth",
+      "item": [
+        {
+          "name": "User Signup",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/users/signup",
+              "host": ["{{BASE_URL}}"],
+              "path": ["users", "signup"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@test.com\",\n  \"password\": \"test@123\",\n  \"name\": \"Test User\",\n  \"uid\": null,\n  \"auth_provider\": \"email\",\n  \"photoURL\": null,\n  \"location\": \"Gujarat\",\n  \"calendar_preference\": \"gujarati\"\n}"
+            }
+          }
+        },
+        {
+          "name": "User Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/users/login",
+              "host": ["{{BASE_URL}}"],
+              "path": ["users", "login"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"email\": \"test@test.com\",\n  \"password\": \"test@123\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Calendar",
+      "item": [
+        {
+          "name": "Upload Calendar CSV",
+          "request": {
+            "method": "POST",
+            "header": [],
+            "url": {
+              "raw": "{{BASE_URL}}/api/calendar/upload-csv",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "calendar", "upload-csv"]
+            },
+            "body": {
+              "mode": "formdata",
+              "formdata": [
+                {
+                  "key": "file",
+                  "type": "file",
+                  "src": ""
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Calendar of Month (Manual)",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ACCESS_TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/calendar/month?year=1980&month=1&calendar=gujarati",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "calendar", "month"],
+              "query": [
+                { "key": "year", "value": "1980" },
+                { "key": "month", "value": "1" },
+                { "key": "calendar", "value": "gujarati" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Calendar for Logged-in User",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ACCESS_TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/calendar/me",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "calendar", "me"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chat",
+      "item": [
+        {
+          "name": "Send Message",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ACCESS_TOKEN}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/chat/send",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "chat", "send"]
+            },
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Hello AI!\",\n  \"session_id\": null\n}"
+            }
+          }
+        },
+        {
+          "name": "Get Chat History",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ACCESS_TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/chat/history?limit=10",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "chat", "history"],
+              "query": [
+                { "key": "limit", "value": "10" }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Delete Message",
+          "request": {
+            "method": "DELETE",
+            "header": [
+              { "key": "Authorization", "value": "Bearer {{ACCESS_TOKEN}}" }
+            ],
+            "url": {
+              "raw": "{{BASE_URL}}/api/chat/message/{{MESSAGE_ID}}",
+              "host": ["{{BASE_URL}}"],
+              "path": ["api", "chat", "message", "{{MESSAGE_ID}}"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "BASE_URL",
+      "value": "http://127.0.0.1:8000"
+    },
+    {
+      "key": "ACCESS_TOKEN",
+      "value": ""
+    },
+    {
+      "key": "MESSAGE_ID",
+      "value": ""
+    }
+  ]
+}

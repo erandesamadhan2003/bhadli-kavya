@@ -9,6 +9,8 @@ class UserCreate(BaseModel):
     uid: Optional[str] = None
     auth_provider: str = "email"
     photoURL: Optional[str] = None
+    location: Optional[str]
+    calendar_preference: Optional[str]
 
 class UserOut(BaseModel):
     id: int

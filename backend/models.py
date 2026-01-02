@@ -13,10 +13,9 @@ def create_user(
     name: Optional[str] = None,
     uid: Optional[str] = None,
     auth_provider: str = "email",
-    photoURL: Optional[str] = None,
-    location: Optional[str] = None,
-    calendar_preference: Optional[str] = None
+    location: Optional[str] = None
 ):
+    """Create a new user with optional location"""
     conn = database.get_connection()
     cursor = conn.cursor(dictionary=True)
 
@@ -33,20 +32,16 @@ def create_user(
                 name,
                 uid,
                 auth_provider,
-                photoURL,
-                location,
-                calendar_preference
+                location
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s)
         """, (
             email,
             hashed_password,
             name,
             uid,
             auth_provider,
-            photoURL,
-            location,
-            calendar_preference
+            location
         ))
 
         user_id = cursor.lastrowid
@@ -58,9 +53,7 @@ def create_user(
                 name,
                 uid,
                 auth_provider,
-                photoURL,
                 location,
-                calendar_preference,
                 created_at
             FROM users
             WHERE id = %s
@@ -109,7 +102,7 @@ def get_user_by_uid(uid: str):
 def get_users():
     conn = database.get_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT id, email, name, uid, auth_provider, photoURL, created_at FROM users")
+    cursor.execute("SELECT id, email, name, uid, auth_provider, created_at FROM users")
     users = cursor.fetchall()
     conn.close()
     
@@ -498,22 +491,42 @@ def get_poems_by_language(language: str, limit: int = 5, before: str = None):
     return poems
 
 
-# 5.2 Get poems by season
-def get_poems_by_season(season: str, limit: int = 5):
+# 5.2 Get poems by season patterns (supports multiple season names)
+def get_poems_by_season_patterns(season_patterns: list, limit: int = 5):
+    """
+    Get poems by season using pattern matching.
+    Searches for any of the provided season patterns in the season column.
+    """
     conn = database.get_connection()
     cursor = conn.cursor(dictionary=True)
 
-    cursor.execute("""
+    # Build WHERE clause with OR conditions for pattern matching
+    conditions = []
+    params = []
+    
+    for pattern in season_patterns:
+        conditions.append("season LIKE %s")
+        params.append(f"%{pattern}%")
+    
+    where_clause = " OR ".join(conditions)
+    params.append(limit)
+
+    query = f"""
         SELECT poem_id, poem, language, season, location, created_at
         FROM poems
-        WHERE season = %s
+        WHERE {where_clause}
         ORDER BY created_at DESC
         LIMIT %s
-    """, (season, limit))
+    """
 
+    cursor.execute(query, tuple(params))
     poems = cursor.fetchall()
     conn.close()
     return poems
+
+# Keep the old function for backward compatibility
+def get_poems_by_season(season: str, limit: int = 5):
+    return get_poems_by_season_patterns([season], limit)
 
 
 # 5.3 Get poems by location

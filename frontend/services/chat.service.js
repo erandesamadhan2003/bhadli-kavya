@@ -1,4 +1,4 @@
-import api from '../api';
+import api from '../api/api';
 
 const chatService = {
     sendMessage: async (message, sessionId = null) => {

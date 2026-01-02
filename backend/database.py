@@ -51,7 +51,7 @@ def init_db():
             name VARCHAR(255),
             uid VARCHAR(255) UNIQUE,
             auth_provider VARCHAR(50) DEFAULT 'email',
-            profile_pic_url TEXT,
+            location VARCHAR(255),
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         )

@@ -1,6 +1,7 @@
 from fastapi import APIRouter, HTTPException
 import models
 import schemas
+import auth  # Changed from relative to absolute import
 
 router = APIRouter(
     prefix="/users",
@@ -10,59 +11,49 @@ router = APIRouter(
 @router.post("/signup")
 def signup(user: schemas.UserCreate):
     try:
-        print(f"📝 Signup request: {user.email}, UID: {user.uid}, Provider: {user.auth_provider}")
+        print(f"📝 Signup request: {user.email}, UID: {user.uid}, Provider: {user.auth_provider}, Location: {user.location}")
         
         # Check if user already exists by email
         db_user = models.get_user_by_email(user.email)
         if db_user:
             print(f"✅ User already exists with email: {user.email}")
+            # ✅ Create JWT token for existing user
+            access_token = auth.create_jwt(db_user["id"])
+            
             return {
                 "message": "User already exists",
+                "access_token": access_token,
+                "token_type": "bearer",
                 "user": {
                     "id": db_user["id"],
                     "email": db_user["email"],
                     "name": db_user["name"],
-                    "uid": db_user["uid"],
+                    "uid": db_user.get("uid"),
                     "auth_provider": db_user["auth_provider"],
-                    "photoURL": db_user["photoURL"]
+                    "location": db_user.get("location")
                 },
                 "status": "existing"
             }
         
-        # For users with UID (Firebase), also check by UID
-        if user.uid:
-            db_user_uid = models.get_user_by_uid(user.uid)
-            if db_user_uid:
-                print(f"✅ User already exists with UID: {user.uid}")
-                return {
-                    "message": "User already exists",
-                    "user": {
-                        "id": db_user_uid["id"],
-                        "email": db_user_uid["email"],
-                        "name": db_user_uid["name"],
-                        "uid": db_user_uid["uid"],
-                        "auth_provider": db_user_uid["auth_provider"],
-                        "photoURL": db_user_uid["photoURL"]
-                    },
-                    "status": "existing"
-                }
-        
-        # Create new user
+        # Create new user with location
         new_user = models.create_user(
             email=user.email,
             password=user.password,
             name=user.name,
             uid=user.uid,
             auth_provider=user.auth_provider,
-            photoURL=user.photoURL,
-            location=user.location,
-            calendar_preference=user.calendar_preference
+            location=user.location if user.location else None
         )
+        
+        # ✅ Create JWT token for new user
+        access_token = auth.create_jwt(new_user["id"])
         
         print(f"✅ User created successfully: {new_user['email']}")
         
         return {
             "message": "User created successfully",
+            "access_token": access_token,
+            "token_type": "bearer",
             "user": new_user,
             "status": "created"
         }
@@ -90,7 +81,6 @@ def login(user: schemas.UserLogin):
                 raise HTTPException(status_code=400, detail="Invalid credentials")
         
         # ✅ Create JWT token
-        from .. import auth
         access_token = auth.create_jwt(db_user["id"])
 
         print(f"✅ Login successful: {user.email}")
@@ -102,9 +92,9 @@ def login(user: schemas.UserLogin):
                 "id": db_user["id"],
                 "email": db_user["email"],
                 "name": db_user["name"],
-                "uid": db_user["uid"],
+                "uid": db_user.get("uid"),
                 "auth_provider": db_user["auth_provider"],
-                "photoURL": db_user["photoURL"]
+                "location": db_user.get("location")
             }
         }
         

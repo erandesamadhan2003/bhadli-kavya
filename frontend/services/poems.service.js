@@ -18,7 +18,7 @@ const poemsService = {
     getPoems: async (filters = {}) => {
         try {
             const response = await api.get('/api/poems/', {
-                params: filters, // { language, season, location }
+                params: filters,
             });
             return response.data;
         } catch (error) {

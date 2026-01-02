@@ -4,7 +4,10 @@ import api from '../api/api';
 const authService = {
     signup: async (userData) => {
         try {
-            const response = await api.post('/users/signup', userData);
+            // Remove photoURL for email signups
+            const { photoURL, ...signupData } = userData;
+
+            const response = await api.post('/users/signup', signupData);
 
             if (response.data.access_token) {
                 await AsyncStorage.setItem('access_token', response.data.access_token);

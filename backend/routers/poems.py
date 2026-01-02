@@ -7,6 +7,16 @@ import database
 
 router = APIRouter(prefix="/api/poems", tags=["poems"])
 
+# Season mapping: English -> Database season patterns
+SEASON_MAPPING = {
+    "spring": ["Vasant", "Spring"],
+    "summer": ["Grishma", "Summer"],
+    "monsoon": ["Varsha", "Monsoon"],
+    "autumn": ["Sharad", "Autumn"],
+    "prewinter": ["Hemant", "PreWinter"],
+    "winter": ["Shishir", "Winter"]
+}
+
 # 1️⃣ Create a poem
 @router.post("/create")
 def create_poem(
@@ -72,7 +82,14 @@ def get_poems_by_language(language: str, limit: int = 5, before: Optional[str] =
 # 5.2 GET /api/poems/season/{season}
 @router.get("/season/{season}")
 def get_poems_by_season(season: str, limit: int = 5):
-    poems = models.get_poems_by_season(season, limit)
+    # Normalize season name to lowercase
+    season_lower = season.lower()
+    
+    # Get possible season names from mapping
+    season_patterns = SEASON_MAPPING.get(season_lower, [season])
+    
+    # Use models function with season patterns
+    poems = models.get_poems_by_season_patterns(season_patterns, limit)
     return {"season": season, "poems": poems}
 
 

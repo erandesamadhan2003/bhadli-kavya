@@ -10,6 +10,7 @@ import CalenderScreen from "./screens/Calender";
 import SignupScreen from "./screens/auth/Signup";
 import LoginScreen from "./screens/auth/Login";
 import { SeasonPoem } from "./screens/SeasonPoem";
+import ChatScreen from "./screens/Chat";
 
 const Stack = createNativeStackNavigator();
 
@@ -94,6 +95,11 @@ function AppNavigator() {
             name="seasonPoem"
             component={SeasonPoem}
             options={{ title: "Season Poem" }}
+          />
+          <Stack.Screen
+            name="chat"
+            component={ChatScreen}
+            options={{ title: "Chat" }}
           />
         </Stack.Navigator>
       </NavigationContainer>

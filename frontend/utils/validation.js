@@ -52,21 +52,26 @@ export const validatePasswordMatch = (password, confirmPassword) => {
 };
 
 export const validateSignupForm = (formData) => {
+    console.log("🔍 Validating signup form:", formData);
+
     // Validate name
     const nameValidation = validateName(formData.name);
     if (!nameValidation.isValid) {
+        console.log("❌ Name validation failed:", nameValidation.error);
         return nameValidation;
     }
 
     // Validate email
     const emailValidation = validateEmail(formData.email);
     if (!emailValidation.isValid) {
+        console.log("❌ Email validation failed:", emailValidation.error);
         return emailValidation;
     }
 
     // Validate password
     const passwordValidation = validatePassword(formData.password);
     if (!passwordValidation.isValid) {
+        console.log("❌ Password validation failed:", passwordValidation.error);
         return passwordValidation;
     }
 
@@ -76,9 +81,11 @@ export const validateSignupForm = (formData) => {
         formData.confirmPassword
     );
     if (!passwordMatchValidation.isValid) {
+        console.log("❌ Password match validation failed:", passwordMatchValidation.error);
         return passwordMatchValidation;
     }
 
+    console.log("✅ All validations passed");
     return { isValid: true, error: null };
 };
 

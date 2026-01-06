@@ -25,9 +25,10 @@ export const sendMessage = createAsyncThunk(
 
 export const getChatHistory = createAsyncThunk(
     'chat/getChatHistory',
-    async ({ limit = 10, before = null }, { rejectWithValue }) => {
+    async ({ sessionId = null, limit = 10, before = null }, { rejectWithValue }) => {
         try {
-            const response = await chatService.getChatHistory(limit, before);
+            console.log("🔵 getChatHistory called with sessionId:", sessionId);
+            const response = await chatService.getChatHistory(sessionId, limit, before);
             return response;
         } catch (error) {
             return rejectWithValue(error);

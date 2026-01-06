@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
   button: {
     paddingVertical: 12,
     paddingHorizontal: 30,
-    borderRadius: 8,
+    borderRadius: 12,
     elevation: 3,
     shadowColor: "#000",
     shadowOffset: { width: 0, height: 2 },
@@ -51,10 +51,10 @@ const styles = StyleSheet.create({
     shadowRadius: 3.84,
   },
   loginButton: {
-    backgroundColor: "#4A90E2",
+    backgroundColor: "#6B4CE6",
   },
   signupButton: {
-    backgroundColor: "#50C878",
+    backgroundColor: "#FF6B9D",
   },
   buttonText: {
     color: "white",

@@ -719,3 +719,43 @@ def get_calendar_for_user(user_id: int):
         "total_days": len(rows),
         "dates": rows
     }
+
+
+def get_last_messages_by_session(user_id: int, session_id: str, limit: int = 2):
+    """Get last N messages from a specific session for context"""
+    conn = database.get_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT role, content FROM messages
+        WHERE user_id = %s AND session_id = %s
+        ORDER BY created_at DESC
+        LIMIT %s
+    """, (user_id, session_id, limit))
+    messages = cursor.fetchall()
+    conn.close()
+    return list(reversed(messages))
+
+
+def get_messages_by_session(user_id: int, session_id: str, limit: int, before: str = None):
+    """Get messages from a specific session"""
+    conn = database.get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    if before:
+        cursor.execute("""
+            SELECT * FROM messages
+            WHERE user_id = %s AND session_id = %s AND created_at < %s
+            ORDER BY created_at DESC
+            LIMIT %s
+        """, (user_id, session_id, before, limit))
+    else:
+        cursor.execute("""
+            SELECT * FROM messages
+            WHERE user_id = %s AND session_id = %s
+            ORDER BY created_at DESC
+            LIMIT %s
+        """, (user_id, session_id, limit))
+
+    messages = cursor.fetchall()
+    conn.close()
+    return messages

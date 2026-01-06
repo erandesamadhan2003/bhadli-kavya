@@ -74,7 +74,7 @@ export const CalendarHeader = ({
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#6B4CE6",
     padding: 16,
     borderBottomLeftRadius: 20,
     borderBottomRightRadius: 20,
@@ -120,6 +120,6 @@ const styles = StyleSheet.create({
     fontWeight: "600",
   },
   typeButtonTextActive: {
-    color: "#007AFF",
+    color: "#6B4CE6",
   },
 });

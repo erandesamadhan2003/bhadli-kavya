@@ -92,6 +92,19 @@ const HomeScreen = ({ navigation }) => {
                   <Text style={styles.cardDesc}>Browse all seasonal poems</Text>
                 </View>
               </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.card}
+                onPress={() => navigation.navigate("chat")}
+              >
+                <View style={styles.cardIconContainer}>
+                  <Text style={styles.cardIcon}>💬</Text>
+                </View>
+                <View style={styles.cardContent}>
+                  <Text style={styles.cardTitle}>AI Chat</Text>
+                  <Text style={styles.cardDesc}>Chat with AI about poetry</Text>
+                </View>
+              </TouchableOpacity>
             </View>
           )}
 
@@ -135,10 +148,10 @@ const HomeScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#f5f7fa" },
+  container: { flex: 1, backgroundColor: "#F8F9FA" },
   scrollContent: { flexGrow: 1, paddingBottom: 30 },
   header: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#6B4CE6",
     paddingVertical: 40,
     paddingHorizontal: 20,
     alignItems: "center",
@@ -159,13 +172,13 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     fontSize: 22,
-    color: "#e3f2fd",
+    color: "#E8DFFF",
     marginBottom: 8,
     fontWeight: "500",
   },
   tagline: {
     fontSize: 14,
-    color: "#bbdefb",
+    color: "#D4C5FF",
     fontStyle: "italic",
     textAlign: "center",
   },
@@ -175,13 +188,13 @@ const styles = StyleSheet.create({
     padding: 24,
     borderRadius: 16,
     marginBottom: 24,
-    shadowColor: "#007AFF",
+    shadowColor: "#6B4CE6",
     shadowOffset: { width: 0, height: 3 },
     shadowOpacity: 0.15,
     shadowRadius: 8,
     elevation: 5,
     borderLeftWidth: 4,
-    borderLeftColor: "#007AFF",
+    borderLeftColor: "#6B4CE6",
   },
   welcomeText: {
     fontSize: 26,
@@ -244,7 +257,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 12,
-    backgroundColor: "#f0f7ff",
+    backgroundColor: "#F3EFFF",
     justifyContent: "center",
     alignItems: "center",
     marginRight: 16,
@@ -267,21 +280,21 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: "center",
     borderWidth: 2,
-    borderColor: "#007AFF",
+    borderColor: "#6B4CE6",
     marginBottom: 12,
   },
   outlineButtonText: {
-    color: "#007AFF",
+    color: "#6B4CE6",
     fontWeight: "600",
     fontSize: 16,
   },
   logoutButton: {
-    backgroundColor: "#ff3b30",
+    backgroundColor: "#F44336",
     padding: 16,
     borderRadius: 12,
     alignItems: "center",
     marginTop: 20,
-    shadowColor: "#ff3b30",
+    shadowColor: "#F44336",
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.3,
     shadowRadius: 4,

@@ -41,12 +41,19 @@ const SignupScreen = ({ navigation }) => {
   };
 
   const handleSignup = async () => {
+    console.log("🔵 Signup button clicked");
+
     // Validate form using utility function
     const validation = validateSignupForm(formData);
+    console.log("🔵 Validation result:", validation);
+
     if (!validation.isValid) {
+      console.log("❌ Validation failed:", validation.error);
       Alert.alert("Error", validation.error);
       return;
     }
+
+    console.log("✅ Validation passed, preparing user data");
 
     try {
       const userData = {
@@ -56,18 +63,29 @@ const SignupScreen = ({ navigation }) => {
         location: formData.location || null,
         calendar_preference: formData.calendar_preference,
         auth_provider: "email",
-        uid: generateUID(), // Auto-generate UUID
+        uid: generateUID(),
       };
 
-      await signup(userData);
+      console.log("🔵 Sending signup request with data:", {
+        ...userData,
+        password: "***hidden***",
+      });
+
+      const response = await signup(userData);
+      console.log("✅ Signup successful:", response);
+
       Alert.alert("Success", "Account created successfully!", [
         { text: "OK", onPress: () => navigation.navigate("login") },
       ]);
     } catch (err) {
-      console.error("Signup failed:", err);
+      console.error("❌ Signup failed:", err);
+      console.error("❌ Error details:", JSON.stringify(err, null, 2));
+
       Alert.alert(
         "Signup Failed",
-        err?.detail || "Unable to create account. Please try again."
+        err?.detail ||
+          err?.message ||
+          "Unable to create account. Please try again."
       );
     }
   };
@@ -232,44 +250,55 @@ const SignupScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
+  container: { flex: 1, backgroundColor: "#F8F9FA" },
   scrollContent: { flexGrow: 1 },
   content: { padding: 20 },
-  title: { fontSize: 28, fontWeight: "bold", marginBottom: 8 },
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 8,
+    color: "#1a1a1a",
+  },
   subtitle: { fontSize: 16, color: "#666", marginBottom: 24 },
   input: {
     borderWidth: 1,
-    borderColor: "#ddd",
+    borderColor: "#E0E0E0",
     padding: 12,
     marginBottom: 16,
-    borderRadius: 8,
+    borderRadius: 12,
     fontSize: 16,
+    backgroundColor: "#fff",
   },
   button: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#6B4CE6",
     padding: 16,
-    borderRadius: 8,
+    borderRadius: 12,
     alignItems: "center",
     marginTop: 8,
+    shadowColor: "#6B4CE6",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
   buttonDisabled: {
-    backgroundColor: "#99c7ff",
+    backgroundColor: "#B8A8F5",
   },
   buttonText: { color: "#fff", fontWeight: "bold", fontSize: 16 },
   errorContainer: {
-    backgroundColor: "#fee",
+    backgroundColor: "#FFEBEE",
     padding: 12,
     borderRadius: 8,
     marginBottom: 16,
   },
-  error: { color: "#c00", fontSize: 14 },
+  error: { color: "#F44336", fontSize: 14 },
   loginContainer: {
     flexDirection: "row",
     justifyContent: "center",
     marginTop: 20,
   },
   loginText: { color: "#666", fontSize: 14 },
-  loginLink: { color: "#007AFF", fontWeight: "bold", fontSize: 14 },
+  loginLink: { color: "#6B4CE6", fontWeight: "bold", fontSize: 14 },
   pickerContainer: { marginBottom: 16 },
   label: {
     fontSize: 16,
@@ -280,6 +309,7 @@ const styles = StyleSheet.create({
   radioGroup: {
     flexDirection: "row",
     gap: 20,
+    marginBottom: 8,
   },
   radioButton: {
     flexDirection: "row",
@@ -291,13 +321,13 @@ const styles = StyleSheet.create({
     height: 20,
     borderRadius: 10,
     borderWidth: 2,
-    borderColor: "#007AFF",
+    borderColor: "#6B4CE6",
   },
   radioCircleSelected: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#6B4CE6",
   },
   radioText: {
-    fontSize: 16,
+    fontSize: 14,
     color: "#333",
   },
 });

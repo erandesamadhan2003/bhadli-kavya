@@ -14,9 +14,12 @@ export const signup = createAsyncThunk(
     'auth/signup',
     async (userData, { rejectWithValue }) => {
         try {
+            console.log("🔵 authSlice: Starting signup...");
             const response = await authService.signup(userData);
+            console.log("✅ authSlice: Signup successful");
             return response;
         } catch (error) {
+            console.error("❌ authSlice: Signup error:", error);
             return rejectWithValue(error);
         }
     }

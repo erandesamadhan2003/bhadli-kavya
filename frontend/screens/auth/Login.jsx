@@ -81,25 +81,52 @@ const LoginScreen = ({ navigation }) => {
 };
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: "#fff" },
+  container: { flex: 1, backgroundColor: "#F8F9FA" },
   content: { padding: 20 },
-  title: { fontSize: 24, fontWeight: "bold", marginBottom: 20 },
+  title: {
+    fontSize: 28,
+    fontWeight: "bold",
+    marginBottom: 20,
+    color: "#1a1a1a",
+  },
   input: {
     borderWidth: 1,
-    borderColor: "#ccc",
-    padding: 10,
+    borderColor: "#E0E0E0",
+    padding: 12,
     marginBottom: 15,
-    borderRadius: 5,
+    borderRadius: 12,
+    backgroundColor: "#fff",
+    fontSize: 16,
   },
   button: {
-    backgroundColor: "#007AFF",
-    padding: 15,
-    borderRadius: 5,
+    backgroundColor: "#6B4CE6",
+    padding: 16,
+    borderRadius: 12,
     alignItems: "center",
+    shadowColor: "#6B4CE6",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 4,
+    elevation: 4,
   },
-  buttonText: { color: "#fff", fontWeight: "bold" },
-  error: { color: "red", marginBottom: 10 },
-  link: { color: "#007AFF", marginTop: 15, textAlign: "center" },
+  buttonText: {
+    color: "#fff",
+    fontWeight: "bold",
+    fontSize: 16,
+  },
+  error: {
+    color: "#F44336",
+    marginBottom: 10,
+    backgroundColor: "#FFEBEE",
+    padding: 12,
+    borderRadius: 8,
+  },
+  link: {
+    color: "#6B4CE6",
+    marginTop: 15,
+    textAlign: "center",
+    fontWeight: "600",
+  },
 });
 
 export default LoginScreen;

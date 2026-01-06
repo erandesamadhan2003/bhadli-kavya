@@ -39,9 +39,10 @@ export const useChat = () => {
 
     const handleGetChatHistory = useCallback(
         async (limit = 10, before = null) => {
-            return dispatch(getChatHistory({ limit, before })).unwrap();
+            console.log("🔵 useChat: Getting history for session:", currentSessionId);
+            return dispatch(getChatHistory({ sessionId: currentSessionId, limit, before })).unwrap();
         },
-        [dispatch]
+        [dispatch, currentSessionId]
     );
 
     const handleDeleteMessage = useCallback(

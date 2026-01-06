@@ -1,6 +1,4 @@
 import { configureStore } from '@reduxjs/toolkit';
-import { persistStore, FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER } from 'redux-persist';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import authReducer from './slice/authSlice';
 import chatReducer from './slice/chatSlice';
 import sessionsReducer from './slice/sessionsSlice';
@@ -13,10 +11,29 @@ export const store = configureStore({
     },
     middleware: (getDefaultMiddleware) =>
         getDefaultMiddleware({
-            serializableCheck: {
-                ignoredActions: [FLUSH, REHYDRATE, PAUSE, PERSIST, PURGE, REGISTER],
-            },
+            serializableCheck: false,
         }),
+    devTools: {
+        trace: true,
+        traceLimit: 25,
+    },
 });
 
-export const persistor = persistStore(store);
+// Log state changes in development
+if (__DEV__) {
+    store.subscribe(() => {
+        console.log('📊 Redux State:', {
+            auth: store.getState().auth.isAuthenticated,
+            chat: {
+                messagesCount: store.getState().chat.messages.length,
+                currentSessionId: store.getState().chat.currentSessionId,
+            },
+            sessions: {
+                count: store.getState().sessions.sessions.length,
+                current: store.getState().sessions.currentSession?.session_id,
+            },
+        });
+    });
+}
+
+export const persistor = null; // Remove persist for now to see live updates

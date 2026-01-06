@@ -32,14 +32,14 @@ export const SeasonPoem = () => {
 
   const getSeasonColor = () => {
     const colors = {
-      Spring: "#A8E6CF",
-      Summer: "#FFD93D",
-      Monsoon: "#6BCB77",
-      Autumn: "#FF8C42",
-      PreWinter: "#B088F9",
-      Winter: "#89CFF0",
+      Spring: "#4CAF50",
+      Summer: "#FFA800",
+      Monsoon: "#00BCD4",
+      Autumn: "#FF6B9D",
+      PreWinter: "#9C27B0",
+      Winter: "#2196F3",
     };
-    return colors[season] || "#007AFF";
+    return colors[season] || "#6B4CE6";
   };
 
   if (isLoading) {
@@ -167,7 +167,7 @@ const styles = StyleSheet.create({
   poemNumber: {
     fontSize: 18,
     fontWeight: "bold",
-    color: "#007AFF",
+    color: "#6B4CE6",
   },
   poemMeta: {
     alignItems: "flex-end",
@@ -193,8 +193,8 @@ const styles = StyleSheet.create({
     paddingTop: 12,
   },
   seasonTag: {
-    backgroundColor: "#e3f2fd",
-    color: "#1976d2",
+    backgroundColor: "#F3EFFF",
+    color: "#6B4CE6",
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 12,
@@ -233,7 +233,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
   },
   retryButton: {
-    backgroundColor: "#007AFF",
+    backgroundColor: "#6B4CE6",
     paddingHorizontal: 24,
     paddingVertical: 12,
     borderRadius: 8,

@@ -11,13 +11,12 @@ router = APIRouter(
 @router.post("/signup")
 def signup(user: schemas.UserCreate):
     try:
-        print(f"📝 Signup request: {user.email}, UID: {user.uid}, Provider: {user.auth_provider}, Location: {user.location}")
+        print(f"📝 Signup request: {user.email}, UID: {user.uid}, Provider: {user.auth_provider}, Location: {user.location}, Calendar: {user.calendar_preference}")
         
         # Check if user already exists by email
         db_user = models.get_user_by_email(user.email)
         if db_user:
             print(f"✅ User already exists with email: {user.email}")
-            # ✅ Create JWT token for existing user
             access_token = auth.create_jwt(db_user["id"])
             
             return {
@@ -30,22 +29,23 @@ def signup(user: schemas.UserCreate):
                     "name": db_user["name"],
                     "uid": db_user.get("uid"),
                     "auth_provider": db_user["auth_provider"],
-                    "location": db_user.get("location")
+                    "location": db_user.get("location"),
+                    "calendar_preference": db_user.get("calendar_preference", "gregorian")
                 },
                 "status": "existing"
             }
         
-        # Create new user with location
+        # Create new user with location and calendar preference
         new_user = models.create_user(
             email=user.email,
             password=user.password,
             name=user.name,
             uid=user.uid,
             auth_provider=user.auth_provider,
-            location=user.location if user.location else None
+            location=user.location if user.location else None,
+            calendar_preference=user.calendar_preference or "gregorian"
         )
         
-        # ✅ Create JWT token for new user
         access_token = auth.create_jwt(new_user["id"])
         
         print(f"✅ User created successfully: {new_user['email']}")

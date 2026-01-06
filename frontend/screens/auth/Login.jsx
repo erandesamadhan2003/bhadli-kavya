@@ -5,9 +5,11 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  Alert,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../../hooks";
+import { validateLoginForm } from "../../utils";
 
 const LoginScreen = ({ navigation }) => {
   const [email, setEmail] = useState("");
@@ -15,11 +17,22 @@ const LoginScreen = ({ navigation }) => {
   const { login, isLoading, error, clearError } = useAuth();
 
   const handleLogin = async () => {
+    // Validate form using utility function
+    const validation = validateLoginForm(email, password);
+    if (!validation.isValid) {
+      Alert.alert("Error", validation.error);
+      return;
+    }
+
     try {
       await login(email, password);
       navigation.navigate("home");
     } catch (err) {
       console.error("Login failed:", err);
+      Alert.alert(
+        "Login Failed",
+        err?.detail || "Invalid email or password. Please try again."
+      );
     }
   };
 

@@ -1,5 +1,5 @@
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, Literal
 from datetime import datetime
 
 class UserCreate(BaseModel):
@@ -9,8 +9,8 @@ class UserCreate(BaseModel):
     uid: Optional[str] = None
     auth_provider: str = "email"
     photoURL: Optional[str] = None
-    location: Optional[str]
-    calendar_preference: Optional[str]
+    location: Optional[str] = None
+    calendar_preference: Optional[Literal["gregorian", "hindi", "gujarati", "bengali", "rajasthani"]] = "gregorian"
 
 class UserOut(BaseModel):
     id: int
@@ -19,6 +19,8 @@ class UserOut(BaseModel):
     uid: Optional[str]
     auth_provider: str
     photoURL: Optional[str]
+    location: Optional[str]
+    calendar_preference: Optional[str]
     
     class Config:
         from_attributes = True

@@ -52,6 +52,7 @@ def init_db():
             uid VARCHAR(255) UNIQUE,
             auth_provider VARCHAR(50) DEFAULT 'email',
             location VARCHAR(255),
+            calendar_preference VARCHAR(50) DEFAULT 'gregorian',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         )

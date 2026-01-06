@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { useAuth } from "../../hooks";
+import { validateSignupForm } from "../../utils";
 
 const SignupScreen = ({ navigation }) => {
   const [formData, setFormData] = useState({
@@ -28,30 +29,6 @@ const SignupScreen = ({ navigation }) => {
     clearError();
   };
 
-  const validateForm = () => {
-    if (!formData.email || !formData.password || !formData.name) {
-      Alert.alert("Error", "Please fill in all required fields");
-      return false;
-    }
-
-    if (!formData.email.includes("@")) {
-      Alert.alert("Error", "Please enter a valid email address");
-      return false;
-    }
-
-    if (formData.password.length < 6) {
-      Alert.alert("Error", "Password must be at least 6 characters long");
-      return false;
-    }
-
-    if (formData.password !== formData.confirmPassword) {
-      Alert.alert("Error", "Passwords do not match");
-      return false;
-    }
-
-    return true;
-  };
-
   const generateUID = () => {
     return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(
       /[xy]/g,
@@ -64,7 +41,12 @@ const SignupScreen = ({ navigation }) => {
   };
 
   const handleSignup = async () => {
-    if (!validateForm()) return;
+    // Validate form using utility function
+    const validation = validateSignupForm(formData);
+    if (!validation.isValid) {
+      Alert.alert("Error", validation.error);
+      return;
+    }
 
     try {
       const userData = {
@@ -165,16 +147,64 @@ const SignupScreen = ({ navigation }) => {
 
               <TouchableOpacity
                 style={styles.radioButton}
-                onPress={() => handleChange("calendar_preference", "hindu")}
+                onPress={() => handleChange("calendar_preference", "hindi")}
               >
                 <View
                   style={[
                     styles.radioCircle,
-                    formData.calendar_preference === "hindu" &&
+                    formData.calendar_preference === "hindi" &&
                       styles.radioCircleSelected,
                   ]}
                 />
-                <Text style={styles.radioText}>Hindu</Text>
+                <Text style={styles.radioText}>Hindi</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.radioGroup}>
+              <TouchableOpacity
+                style={styles.radioButton}
+                onPress={() => handleChange("calendar_preference", "gujarati")}
+              >
+                <View
+                  style={[
+                    styles.radioCircle,
+                    formData.calendar_preference === "gujarati" &&
+                      styles.radioCircleSelected,
+                  ]}
+                />
+                <Text style={styles.radioText}>Gujarati</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={styles.radioButton}
+                onPress={() => handleChange("calendar_preference", "bengali")}
+              >
+                <View
+                  style={[
+                    styles.radioCircle,
+                    formData.calendar_preference === "bengali" &&
+                      styles.radioCircleSelected,
+                  ]}
+                />
+                <Text style={styles.radioText}>Bengali</Text>
+              </TouchableOpacity>
+            </View>
+
+            <View style={styles.radioGroup}>
+              <TouchableOpacity
+                style={styles.radioButton}
+                onPress={() =>
+                  handleChange("calendar_preference", "rajasthani")
+                }
+              >
+                <View
+                  style={[
+                    styles.radioCircle,
+                    formData.calendar_preference === "rajasthani" &&
+                      styles.radioCircleSelected,
+                  ]}
+                />
+                <Text style={styles.radioText}>Rajasthani</Text>
               </TouchableOpacity>
             </View>
           </View>

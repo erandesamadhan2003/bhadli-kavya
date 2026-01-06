@@ -13,9 +13,10 @@ def create_user(
     name: Optional[str] = None,
     uid: Optional[str] = None,
     auth_provider: str = "email",
-    location: Optional[str] = None
+    location: Optional[str] = None,
+    calendar_preference: str = "gregorian"
 ):
-    """Create a new user with optional location"""
+    """Create a new user with optional location and calendar preference"""
     conn = database.get_connection()
     cursor = conn.cursor(dictionary=True)
 
@@ -32,16 +33,18 @@ def create_user(
                 name,
                 uid,
                 auth_provider,
-                location
+                location,
+                calendar_preference
             )
-            VALUES (%s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
         """, (
             email,
             hashed_password,
             name,
             uid,
             auth_provider,
-            location
+            location,
+            calendar_preference
         ))
 
         user_id = cursor.lastrowid
@@ -54,6 +57,7 @@ def create_user(
                 uid,
                 auth_provider,
                 location,
+                calendar_preference,
                 created_at
             FROM users
             WHERE id = %s

@@ -1,193 +1,307 @@
-# Bhadli Kavya
+# 🎯 Bhadli Kavya - Poetry & Calendar Application
 
-# 🪶 Kavya Backend API
-
-This is the backend for **Bhadli Kavya**, built using **FastAPI** with **MySQL** for data storage.  
-It handles user authentication, calendar data, and file uploads.
+A full-stack application with React Native (Expo Web) frontend and FastAPI backend, using Aiven Cloud MySQL database.
 
 ---
 
-## ⚙️ Project Setup
+## 🚀 Quick Start for Developers
 
-### 1. Clone the Repository
+### Prerequisites
+
+- Docker installed ([Get Docker](https://docs.docker.com/get-docker/))
+- Docker Compose installed ([Get Docker Compose](https://docs.docker.com/compose/install/))
+- Git installed
+
+---
+
+## 📥 Setup Instructions
+
+### 1️⃣ Clone the Repository
+
 ```bash
-git clone <your-repo-link>
+git clone https://github.com/erandesamadhan2003/bhadli-kavya.git
 cd bhadli-kavya
-2. Create and Activate Virtual Environment
-bash
-Copy code
-# Create venv
-python -m venv venv
+```
 
-# Activate (Windows PowerShell)
-venv\Scripts\activate
+### 2️⃣ Configure Environment Variables
 
-# Activate (Linux/Mac)
-source venv/bin/activate
-3. Install Dependencies
-bash
-Copy code
-pip install fastapi uvicorn mysql-connector-python python-dotenv passlib
-🧠 Note:
-We use pbkdf2_sha256 hashing from passlib, so bcrypt installation is not required.
+Copy the example environment file:
 
-🗃️ MySQL Database Setup
-1. Create .env File in Root Directory
-Create a file named .env (at the same level as the backend folder):
+```bash
+cp .env.example .env
+```
 
-ini
-Copy code
-DB_HOST=localhost
-DB_PORT=3306
-DB_USER=root
-DB_PASSWORD=your_mysql_password
-DB_NAME=bhadli_kavya
-2. Ensure MySQL Server is Running
-Start MySQL (e.g., using XAMPP, WAMP, or mysqld).
+**Important:** Edit the `.env` file and update these values with your own credentials:
 
-Verify with:
+```bash
+# Open .env in your editor
+nano .env   # or use: vim .env, code .env, etc.
 
-bash
-Copy code
-mysql -u root -p
-The database and tables will auto-create when the server starts.
+# Update these values:
+DB_HOST=your-database-host
+DB_PORT=your-database-port
+DB_USER=your-database-user
+DB_PASSWORD=your-database-password
+DB_NAME=your-database-name
+```
 
-🚀 Running the Server
-From the project root directory (same level as backend):
+> **Note:** You need your own Aiven MySQL database or use a local MySQL database. Update the connection details accordingly.
 
-bash
-Copy code
-uvicorn backend.main:app --reload
-You should see:
+### 3️⃣ Start the Application
 
-csharp
-Copy code
-🔍 Loaded DB Config: {'host': 'localhost', 'port': 3306, ...}
-✅ Database and tables created successfully
-INFO:     Uvicorn running on http://127.0.0.1:8000
-🌐 API Endpoints
-🏠 Root
-GET /
-Response:
+Simply run:
 
-json
-Copy code
-{ "message": "Kavya Backend API is running!" }
-👤 User Signup
-POST /users/signup
+```bash
+./start-docker.sh
+```
 
-Body (JSON):
+This script will:
 
-json
-Copy code
-{
-  "email": "testuser@gmail.com",
-  "password": "test123",
-  "name": "Test User",
-  "uid": "firebase_uid_12345",
-  "auth_provider": "email",
-  "photoURL": "https://example.com/avatar.png"
-}
-Response:
+- ✅ Build Docker images
+- ✅ Start all services
+- ✅ Show you the access URLs
 
-json
-Copy code
-{
-  "message": "User created successfully",
-  "user": {
-    "id": 1,
-    "email": "testuser@gmail.com",
-    "name": "Test User",
-    "uid": "firebase_uid_12345",
-    "auth_provider": "email",
-    "photoURL": "https://example.com/avatar.png"
-  },
-  "status": "created"
-}
-🔐 User Login
-POST /users/login
+**Wait for the script to complete, then access:**
 
-Body (JSON):
+---
 
-json
-Copy code
-{
-  "email": "testuser@gmail.com",
-  "password": "test123"
-}
-Response:
+## 📍 Access the Application
 
-json
-Copy code
-{
-  "message": "Login successful",
-  "user": {
-    "id": 1,
-    "email": "testuser@gmail.com",
-    "name": "Test User",
-    "uid": "firebase_uid_12345",
-    "auth_provider": "email",
-    "photoURL": "https://example.com/avatar.png"
-  }
-}
-🧰 Developer Notes
-✅ Auto Database Initialization
-When the app starts, it automatically:
+Once the containers are running, open your browser:
 
-Connects to MySQL using .env credentials.
+| Service            | URL                        | Description                       |
+| ------------------ | -------------------------- | --------------------------------- |
+| 🌐 **Frontend**    | http://localhost:8081      | React/Expo Web Application        |
+| ⚡ **Backend API** | http://localhost:8000      | FastAPI REST API Server           |
+| 📚 **API Docs**    | http://localhost:8000/docs | Interactive Swagger Documentation |
 
-Creates the database bhadli_kavya (if it doesn’t exist).
+---
 
-Creates required tables:
+## 🛠️ Development Commands
 
-users
+### View Logs
 
-calendar
+```bash
+# All services
+docker-compose logs -f
 
-🧠 Password Hashing
-Passwords are securely hashed using PBKDF2 (SHA-256) from passlib.
+# Backend only
+docker-compose logs -f backend
 
-Verification is handled using:
+# Frontend only
+docker-compose logs -f frontend
+```
 
-python
-Copy code
-pbkdf2_sha256.verify(plain_password, hashed_password)
-📦 Folder Structure
-pgsql
-Copy code
+### Stop Services
+
+```bash
+docker-compose stop
+```
+
+### Restart Services
+
+```bash
+docker-compose restart
+```
+
+### Check Service Status
+
+```bash
+docker-compose ps
+```
+
+---
+
+## 🧹 Cleanup (When Done Working)
+
+To free up Docker storage and remove all containers/images:
+
+```bash
+./cleanup-docker.sh
+```
+
+This will:
+
+- ✅ Remove all project containers
+- ✅ Remove all project images
+- ✅ Free up disk space
+- ✅ **Your code files remain safe!**
+
+**Note:** You'll need to run `./start-docker.sh` again to restart the project.
+
+---
+
+## 🔄 Complete Developer Workflow
+
+```bash
+# 1. Start working
+./start-docker.sh
+
+# 2. Develop your features
+# - Frontend code in ./frontend/
+# - Backend code in ./backend/
+# - Changes auto-reload in containers!
+
+# 3. View logs if needed
+docker-compose logs -f
+
+# 4. When done for the day
+./cleanup-docker.sh
+
+# 5. Next time, start again
+./start-docker.sh
+```
+
+---
+
+## 📂 Project Structure
+
+```
 bhadli-kavya/
-│
-├── backend/
+├── backend/              # FastAPI backend
+│   ├── Dockerfile
 │   ├── main.py
 │   ├── database.py
 │   ├── models.py
-│   ├── schemas.py
 │   ├── routers/
-│   │   ├── users.py
-│   │   ├── upload.py
-│   │   └── calendar.py
-│   └── __init__.py
-│
-├── .env
-└── README.md
-🧪 Testing with Postman
-Run the backend:
+│   └── requirements.txt
+├── frontend/             # React/Expo frontend
+│   ├── Dockerfile
+│   ├── App.jsx
+│   ├── package.json
+│   ├── components/
+│   ├── screens/
+│   └── services/
+├── docker-compose.yml    # Service orchestration
+├── start-docker.sh       # Start script ⭐
+├── cleanup-docker.sh     # Cleanup script 🧹
+├── .env                  # Your environment variables (DO NOT COMMIT)
+└── .env.example          # Environment template
+```
 
-bash
-Copy code
-uvicorn backend.main:app --reload
-Open Postman and send requests to:
+---
 
-POST http://127.0.0.1:8000/users/signup
+## 🔒 Database Configuration
 
-POST http://127.0.0.1:8000/users/login
+### Option 1: Aiven Cloud MySQL (Recommended)
 
-GET http://127.0.0.1:8000/
+1. Create a free MySQL database on [Aiven](https://aiven.io)
+2. Get your connection details from Aiven console
+3. Update `.env` file with your Aiven credentials:
 
-Verify data in MySQL:
+```bash
+DB_HOST=your-aiven-host.aivencloud.com
+DB_PORT=21638
+DB_USER=avnadmin
+DB_PASSWORD=your-aiven-password
+DB_NAME=defaultdb
+DB_SSL_MODE=REQUIRED
+```
 
-bash
-Copy code
-mysql -u root -p
-use bhadli_kavya;
-select * from users;
+### Option 2: Local MySQL Database
+
+To use a local MySQL database instead:
+
+1. Uncomment the `database` service in `docker-compose.yml`
+2. Update `.env` file:
+
+```bash
+DB_HOST=database
+DB_PORT=3306
+DB_USER=your_username
+DB_PASSWORD=your_password
+DB_NAME=bhadli_kavya
+DB_SSL_MODE=DISABLED
+```
+
+3. Run `./start-docker.sh`
+
+---
+
+## 🐛 Troubleshooting
+
+### Port Already in Use
+
+If ports 8000 or 8081 are already in use:
+
+1. Edit `.env` file:
+
+```bash
+API_PORT=9000       # Change backend port
+FRONTEND_PORT=9001  # Change frontend port
+```
+
+2. Restart:
+
+```bash
+./start-docker.sh
+```
+
+### Database Connection Error
+
+Check your `.env` file has correct database credentials:
+
+```bash
+cat .env
+```
+
+View backend logs for detailed error:
+
+```bash
+docker-compose logs backend
+```
+
+### Container Won't Start
+
+Rebuild from scratch:
+
+```bash
+./cleanup-docker.sh
+./start-docker.sh
+```
+
+---
+
+## 👥 Contributing
+
+1. Fork the repository
+2. Create your feature branch: `git checkout -b feature/amazing-feature`
+3. Commit your changes: `git commit -m 'Add amazing feature'`
+4. Push to the branch: `git push origin feature/amazing-feature`
+5. Open a Pull Request
+
+---
+
+## 📝 Important Notes
+
+- ⚠️ **Never commit your `.env` file!** It contains sensitive credentials
+- ✅ The `.env` file is already in `.gitignore`
+- ✅ Always use `.env.example` as a template
+- ✅ Hot reload is enabled - your code changes reflect immediately
+- ✅ Database data persists between restarts (when using local database)
+
+---
+
+## 🎉 You're All Set!
+
+Just run:
+
+```bash
+./start-docker.sh
+```
+
+Then open **http://localhost:8081** in your browser!
+
+Happy coding! 🚀
+
+---
+
+## 📞 Need Help?
+
+- Check the logs: `docker-compose logs -f`
+- Check service status: `docker-compose ps`
+- Rebuild everything: `./cleanup-docker.sh && ./start-docker.sh`
+
+---
+
+**Made with ❤️ by the Bhadli Kavya Team**

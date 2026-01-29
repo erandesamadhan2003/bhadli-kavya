@@ -108,8 +108,7 @@ def get_poems_by_location(location: str, limit: int = 5):
 # 6️⃣ Upload CSV and Insert Poems
 @router.post("/upload-csv")
 async def upload_poems_csv(
-    file: UploadFile = File(...),
-    user_id: int = Depends(auth.get_current_user_id)
+    file: UploadFile = File(...)
 ):
     if not file.filename.endswith(".csv"):
         raise HTTPException(status_code=400, detail="Only CSV files are allowed.")

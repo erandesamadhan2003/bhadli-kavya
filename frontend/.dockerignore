@@ -1,0 +1,14 @@
+node_modules
+npm - debug.log
+    .git
+    .gitignore
+    .env.local
+        .expo
+        .next
+        .nuxt
+dist
+build
+    .vscode
+    .DS_Store
+    .env
+yarn.lock

@@ -1,0 +1,116 @@
+services:
+  # MySQL Database Service (Local - DISABLED for Aiven Cloud)
+  # Uncomment if you want to use local database instead of Aiven
+  # database:
+  #   image: mysql:8.0
+  #   container_name: bhadli-kavya-db
+  #   restart: unless-stopped
+  #   environment:
+  #     MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
+  #     MYSQL_DATABASE: ${DB_NAME:-bhadli_kavya}
+  #     MYSQL_USER: ${DB_USER:-kavya_user}
+  #     MYSQL_PASSWORD: ${DB_PASSWORD:-kavya_password}
+  #     MYSQL_PORT: 3306
+  #   ports:
+  #     - "${DB_PORT:-3306}:3306"
+  #   volumes:
+  #     - db_data:/var/lib/mysql
+  #   networks:
+  #     - bhadli-network
+  #   healthcheck:
+  #     test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+  #     interval: 10s
+  #     timeout: 5s
+  #     retries: 5
+
+  # Backend Service (FastAPI)
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bhadli-kavya-backend
+    restart: unless-stopped
+    environment:
+      # Database Configuration - Aiven Cloud
+      DB_HOST: ${DB_HOST:-bhadlikavyadatabase-bhadlikavya.j.aivencloud.com}
+      DB_PORT: ${DB_PORT:-21638}
+      DB_USER: ${DB_USER:-avnadmin}
+      DB_PASSWORD: ${DB_PASSWORD:-AVNS_55DBt4f1V77z7BaMpUY}
+      DB_NAME: ${DB_NAME:-defaultdb}
+      DB_SSL_MODE: ${DB_SSL_MODE:-REQUIRED}
+      
+      # JWT Configuration
+      JWT_SECRET: ${JWT_SECRET:-your-secret-key-change-in-production}
+      JWT_ALGORITHM: ${JWT_ALGORITHM:-HS256}
+      
+      # API Configuration
+      API_PORT: ${API_PORT:-8000}
+      DEBUG: ${DEBUG:-false}
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      # Source code for development (hot reload)
+      - ./backend:/app
+      # Uploads directory
+      - backend_uploads:/app/uploads
+      # Cache directory for Python
+      - backend_cache:/app/__pycache__
+    # No dependency on local database since using Aiven cloud
+    # depends_on:
+    #   database:
+    #     condition: service_healthy
+    networks:
+      - bhadli-network
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://localhost:8000/health')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # Frontend Service (React Native Web)
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: bhadli-kavya-frontend
+    restart: unless-stopped
+    environment:
+      # Backend API URL
+      REACT_APP_API_URL: ${REACT_APP_API_URL:-http://backend:8000}
+      REACT_APP_DEBUG: ${REACT_APP_DEBUG:-false}
+      NODE_ENV: ${NODE_ENV:-development}
+    ports:
+      - "${FRONTEND_PORT:-8081}:8081"
+      - "19006:19006"
+    volumes:
+      # Source code for development (hot reload)
+      - ./frontend:/app
+      # Don't mount node_modules from host
+      - /app/node_modules
+      - /app/.expo
+    depends_on:
+      - backend
+    networks:
+      - bhadli-network
+    healthcheck:
+      test: ["CMD", "wget", "--quiet", "--tries=1", "--spider", "http://localhost:8081"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+# Networks
+networks:
+  bhadli-network:
+    driver: bridge
+
+# Volumes
+volumes:
+  db_data:
+    driver: local
+  backend_uploads:
+    driver: local
+  backend_cache:
+    driver: local

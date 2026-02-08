@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 import models, auth
 
 router = APIRouter(prefix="/api/chat", tags=["chat"])
@@ -7,35 +7,51 @@ router = APIRouter(prefix="/api/chat", tags=["chat"])
 def send_message(body: dict, user_id: int = Depends(auth.get_current_user_id)):
     """
     Send a message from the user to the AI.
-    Optionally links message to a session_id (conversation thread).
+    Links message to a session_id (conversation thread).
     """
     message = body.get("message")
-    session_id = body.get("session_id")  # ✅ NEW
+    session_id = body.get("session_id")
+    
     if not message:
         raise HTTPException(status_code=400, detail="Message is required")
+    
+    if not session_id:
+        raise HTTPException(status_code=400, detail="Session ID is required")
 
     # Save the user's message
-    models.save_message(user_id, "user", message, session_id=session_id)
+    user_message = models.save_message(user_id, "user", message, session_id=session_id)
 
-    # Get the last 2 messages for context
-    history = models.get_last_messages(user_id, limit=2)
+    # Get the last 2 messages for context FROM THIS SESSION ONLY
+    history = models.get_last_messages_by_session(user_id, session_id, limit=2)
 
     # Fake AI response for now
     ai_response = " + ".join([m["content"] for m in history]) + " + This is an AI automated response"
 
     # Save model's response
-    saved = models.save_message(user_id, "model", ai_response, session_id=session_id)
+    model_message = models.save_message(user_id, "model", ai_response, session_id=session_id)
 
-    return {"modelResponse": saved}
+    return {
+        "userMessage": user_message,
+        "modelResponse": model_message
+    }
 
 
 @router.get("/history")
-def chat_history(limit: int = 10, before: str = None, user_id: int = Depends(auth.get_current_user_id)):
+def chat_history(
+    session_id: str = Query(None),
+    limit: int = 10,
+    before: str = None,
+    user_id: int = Depends(auth.get_current_user_id)
+):
     """
     Get chat history for the logged-in user.
-    Optional 'before' param allows pagination.
+    If session_id is provided, only get messages from that session.
     """
-    messages = models.get_messages(user_id, limit, before)
+    if session_id:
+        messages = models.get_messages_by_session(user_id, session_id, limit, before)
+    else:
+        messages = models.get_messages(user_id, limit, before)
+    
     return list(reversed(messages))
 
 

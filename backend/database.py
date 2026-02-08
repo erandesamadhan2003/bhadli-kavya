@@ -6,7 +6,7 @@ import os
 env_path = os.path.join(os.path.dirname(__file__), '..', '.env')
 load_dotenv(dotenv_path=env_path)
 
-
+# Base database configuration
 DB_CONFIG = {
     'host': os.getenv('DB_HOST', 'localhost'),
     'port': int(os.getenv('DB_PORT', 3306)),
@@ -15,6 +15,15 @@ DB_CONFIG = {
     'database': os.getenv('DB_NAME', 'bhadli_kavya'),
     'autocommit': True
 }
+
+# Add SSL configuration if required (for Aiven cloud database)
+ssl_mode = os.getenv('DB_SSL_MODE', 'DISABLED')
+if ssl_mode == 'REQUIRED':
+    DB_CONFIG['ssl_disabled'] = False
+    # Aiven provides SSL automatically, we just need to enable it
+    print("🔒 SSL/TLS encryption enabled for database connection")
+else:
+    DB_CONFIG['ssl_disabled'] = True
 
 def get_connection():
     try:
@@ -51,7 +60,8 @@ def init_db():
             name VARCHAR(255),
             uid VARCHAR(255) UNIQUE,
             auth_provider VARCHAR(50) DEFAULT 'email',
-            profile_pic_url TEXT,
+            location VARCHAR(255),
+            calendar_preference VARCHAR(50) DEFAULT 'gregorian',
             created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
             updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
         )

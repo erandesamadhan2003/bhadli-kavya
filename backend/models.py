@@ -13,10 +13,10 @@ def create_user(
     name: Optional[str] = None,
     uid: Optional[str] = None,
     auth_provider: str = "email",
-    photoURL: Optional[str] = None,
     location: Optional[str] = None,
-    calendar_preference: Optional[str] = None
+    calendar_preference: str = "gregorian"
 ):
+    """Create a new user with optional location and calendar preference"""
     conn = database.get_connection()
     cursor = conn.cursor(dictionary=True)
 
@@ -33,18 +33,16 @@ def create_user(
                 name,
                 uid,
                 auth_provider,
-                photoURL,
                 location,
                 calendar_preference
             )
-            VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
         """, (
             email,
             hashed_password,
             name,
             uid,
             auth_provider,
-            photoURL,
             location,
             calendar_preference
         ))
@@ -58,7 +56,6 @@ def create_user(
                 name,
                 uid,
                 auth_provider,
-                photoURL,
                 location,
                 calendar_preference,
                 created_at
@@ -109,7 +106,7 @@ def get_user_by_uid(uid: str):
 def get_users():
     conn = database.get_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("SELECT id, email, name, uid, auth_provider, photoURL, created_at FROM users")
+    cursor.execute("SELECT id, email, name, uid, auth_provider, created_at FROM users")
     users = cursor.fetchall()
     conn.close()
     
@@ -498,22 +495,42 @@ def get_poems_by_language(language: str, limit: int = 5, before: str = None):
     return poems
 
 
-# 5.2 Get poems by season
-def get_poems_by_season(season: str, limit: int = 5):
+# 5.2 Get poems by season patterns (supports multiple season names)
+def get_poems_by_season_patterns(season_patterns: list, limit: int = 5):
+    """
+    Get poems by season using pattern matching.
+    Searches for any of the provided season patterns in the season column.
+    """
     conn = database.get_connection()
     cursor = conn.cursor(dictionary=True)
 
-    cursor.execute("""
+    # Build WHERE clause with OR conditions for pattern matching
+    conditions = []
+    params = []
+    
+    for pattern in season_patterns:
+        conditions.append("season LIKE %s")
+        params.append(f"%{pattern}%")
+    
+    where_clause = " OR ".join(conditions)
+    params.append(limit)
+
+    query = f"""
         SELECT poem_id, poem, language, season, location, created_at
         FROM poems
-        WHERE season = %s
+        WHERE {where_clause}
         ORDER BY created_at DESC
         LIMIT %s
-    """, (season, limit))
+    """
 
+    cursor.execute(query, tuple(params))
     poems = cursor.fetchall()
     conn.close()
     return poems
+
+# Keep the old function for backward compatibility
+def get_poems_by_season(season: str, limit: int = 5):
+    return get_poems_by_season_patterns([season], limit)
 
 
 # 5.3 Get poems by location
@@ -702,3 +719,43 @@ def get_calendar_for_user(user_id: int):
         "total_days": len(rows),
         "dates": rows
     }
+
+
+def get_last_messages_by_session(user_id: int, session_id: str, limit: int = 2):
+    """Get last N messages from a specific session for context"""
+    conn = database.get_connection()
+    cursor = conn.cursor(dictionary=True)
+    cursor.execute("""
+        SELECT role, content FROM messages
+        WHERE user_id = %s AND session_id = %s
+        ORDER BY created_at DESC
+        LIMIT %s
+    """, (user_id, session_id, limit))
+    messages = cursor.fetchall()
+    conn.close()
+    return list(reversed(messages))
+
+
+def get_messages_by_session(user_id: int, session_id: str, limit: int, before: str = None):
+    """Get messages from a specific session"""
+    conn = database.get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    if before:
+        cursor.execute("""
+            SELECT * FROM messages
+            WHERE user_id = %s AND session_id = %s AND created_at < %s
+            ORDER BY created_at DESC
+            LIMIT %s
+        """, (user_id, session_id, before, limit))
+    else:
+        cursor.execute("""
+            SELECT * FROM messages
+            WHERE user_id = %s AND session_id = %s
+            ORDER BY created_at DESC
+            LIMIT %s
+        """, (user_id, session_id, limit))
+
+    messages = cursor.fetchall()
+    conn.close()
+    return messages

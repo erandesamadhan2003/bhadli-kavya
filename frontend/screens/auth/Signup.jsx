@@ -109,6 +109,7 @@ const SignupScreen = ({ navigation }) => {
             style={styles.input}
             placeholder="Full Name *"
             value={formData.name}
+            placeholderTextColor="#666"
             onChangeText={(value) => handleChange("name", value)}
             autoCapitalize="words"
           />
@@ -119,6 +120,7 @@ const SignupScreen = ({ navigation }) => {
             value={formData.email}
             onChangeText={(value) => handleChange("email", value)}
             keyboardType="email-address"
+            placeholderTextColor="#666"
             autoCapitalize="none"
           />
 
@@ -126,6 +128,7 @@ const SignupScreen = ({ navigation }) => {
             style={styles.input}
             placeholder="Password *"
             value={formData.password}
+            placeholderTextColor="#666"
             onChangeText={(value) => handleChange("password", value)}
             secureTextEntry
           />
@@ -134,6 +137,7 @@ const SignupScreen = ({ navigation }) => {
             style={styles.input}
             placeholder="Confirm Password *"
             value={formData.confirmPassword}
+            placeholderTextColor="#666"
             onChangeText={(value) => handleChange("confirmPassword", value)}
             secureTextEntry
           />
@@ -142,6 +146,7 @@ const SignupScreen = ({ navigation }) => {
             style={styles.input}
             placeholder="Location (Optional)"
             value={formData.location}
+            placeholderTextColor="#666"
             onChangeText={(value) => handleChange("location", value)}
             autoCapitalize="words"
           />

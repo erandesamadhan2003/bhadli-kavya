@@ -5,6 +5,7 @@ from routers import chat
 from routers import sessions
 from routers import poems
 from routers.auth_routes import router as auth_router
+from routers.geography_router import router as geo_router
 
 # import database
 import database
@@ -32,6 +33,7 @@ app.include_router(chat.router)
 app.include_router(auth_router)
 app.include_router(sessions.router)
 app.include_router(poems.router)
+app.include_router(geo_router)
 
 @app.get("/")
 def read_root():

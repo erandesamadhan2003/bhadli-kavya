@@ -759,3 +759,98 @@ def get_messages_by_session(user_id: int, session_id: str, limit: int, before: s
     messages = cursor.fetchall()
     conn.close()
     return messages
+
+
+#  add state to states table
+def add_state(state_name: str):
+    conn = database.get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute(
+        "INSERT IGNORE INTO states (state_name) VALUES (%s)",
+        (state_name,)
+    )
+
+    conn.commit()
+    affected = cursor.rowcount
+    conn.close()
+
+    return affected > 0
+
+#  add district to districts table
+def add_district(state_id: int, district_name: str):
+    conn = database.get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT IGNORE INTO districts (state_id, district_name)
+        VALUES (%s, %s)
+    """, (state_id, district_name))
+
+    conn.commit()
+    affected = cursor.rowcount
+    conn.close()
+
+    return affected > 0
+
+#   upsert poem stats for a district
+def upsert_poem_stats(poem_id: str, district_id: int, score: float, count: int):
+    conn = database.get_connection()
+    cursor = conn.cursor()
+
+    cursor.execute("""
+        INSERT INTO poem_district_stats (poem_id, district_id, score, count)
+        VALUES (%s, %s, %s, %s)
+        ON DUPLICATE KEY UPDATE
+            score = VALUES(score),
+            count = VALUES(count)
+    """, (poem_id, district_id, score, count))
+
+    conn.commit()
+    conn.close()
+
+
+
+#   get all poem stats with state and district names
+def get_all_poem_stats():
+    conn = database.get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+    SELECT 
+        p.poem_id,
+        p.poem,
+        s.state_name,
+        d.district_name,
+        ps.score,
+        ps.count
+    FROM poem_district_stats ps
+    JOIN poems p ON p.poem_id = ps.poem_id
+    JOIN districts d ON d.id = ps.district_id
+    JOIN states s ON s.id = d.state_id
+    ORDER BY s.state_name, d.district_name
+    """)
+
+    data = cursor.fetchall()
+    conn.close()
+    return data
+
+#   get poem stats for a specific state
+def get_stats_by_state(state_id: int):
+    conn = database.get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    cursor.execute("""
+    SELECT 
+        p.poem_id,
+        d.district_name,
+        ps.score,
+        ps.count
+    FROM poem_district_stats ps
+    JOIN districts d ON d.id = ps.district_id
+    WHERE d.state_id = %s
+    """, (state_id,))
+
+    data = cursor.fetchall()
+    conn.close()
+    return data

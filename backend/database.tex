@@ -1,0 +1,103 @@
+% Database documentation for Kavya project
+\section*{Overview}
+The backend uses MySQL via \texttt{mysql.connector}. Configuration is read from a top-level ".env" file (look one directory above the \texttt{backend} folder). Key environment variables used in \texttt{database.py} are:
+
+- \texttt{DB\_HOST} (default: localhost)
+- \texttt{DB\_PORT} (default: 3306)
+- \texttt{DB\_USER} (default: root)
+- \texttt{DB\_PASSWORD} (no default; expected in .env)
+- \texttt{DB\_NAME} (default: bhadli\_kavya)
+- \texttt{DB\_SSL\_MODE} (controls SSL behaviour; defaults to DISABLED)
+
+The connection dictionary is exposed as \texttt{DB\_CONFIG} and used by \texttt{get\_connection()} to open connections. \texttt{init\_db()} creates the database (if missing) and all required tables.
+
+\section*{Initialization behavior}
+On startup, \texttt{init\_db()} performs these actions:
+\begin{enumerate}
+  \item Create the database if it does not exist and switch to it.
+  \item Create tables: \texttt{users}, \texttt{sessions}, \texttt{messages}, \texttt{poems}, \texttt{calendar} (with the SQL shown below).
+  \item Ensure indexes on messages and poems and calendar for query performance.
+\end{enumerate}
+
+\section*{Schema (tables and columns)}
+Below are the tables created by \texttt{init\_db()} with important columns, constraints and indexes.
+
+\subsection*{users}
+\begin{itemize}
+  \item \texttt{id} INT AUTO\_INCREMENT PRIMARY KEY
+  \item \texttt{email} VARCHAR(255) UNIQUE NOT NULL
+  \item \texttt{password} TEXT NOT NULL
+  \item \texttt{name} VARCHAR(255)
+  \item \texttt{uid} VARCHAR(255) UNIQUE (used for social logins or external IDs)
+  \item \texttt{auth\_provider} VARCHAR(50) DEFAULT 'email'
+  \item \texttt{location} VARCHAR(255)
+  \item \texttt{calendar\_preference} VARCHAR(50) DEFAULT 'gregorian'
+  \item \texttt{created\_at}, \texttt{updated\_at} TIMESTAMP columns
+\end{itemize}
+
+\subsection*{sessions}
+\begin{itemize}
+  \item \texttt{session\_id} CHAR(36) PRIMARY KEY
+  \item \texttt{user\_id} INT NOT NULL (FK -> \texttt{users.id} ON DELETE CASCADE)
+  \item \texttt{title} TEXT, \texttt{status} VARCHAR(20) DEFAULT 'active'
+  \item \texttt{started\_at}, \texttt{ended\_at} timestamps
+\end{itemize}
+
+\subsection*{messages}
+\begin{itemize}
+  \item \texttt{message\_id} CHAR(36) PRIMARY KEY
+  \item \texttt{session\_id} CHAR(36) (FK -> \texttt{sessions.session\_id}, ON DELETE SET NULL)
+  \item \texttt{user\_id} INT NOT NULL (FK -> \texttt{users.id} ON DELETE CASCADE)
+  \item \texttt{role} VARCHAR(10) NOT NULL CHECK (role IN ('user','model'))
+  \item \texttt{content} TEXT NOT NULL
+  \item \texttt{created\_at} TIMESTAMP DEFAULT CURRENT\_TIMESTAMP
+  \item Indexes: \texttt{idx\_messages\_user\_id\_created\_at} and \texttt{idx\_messages\_session\_created\_at}
+\end{itemize}
+
+\subsection*{poems}
+\begin{itemize}
+  \item \texttt{poem\_id} CHAR(36) PRIMARY KEY
+  \item \texttt{poem} TEXT NOT NULL
+  \item \texttt{language} VARCHAR(100) NOT NULL
+  \item \texttt{season} VARCHAR(50) NOT NULL
+  \item \texttt{location} VARCHAR(150) NOT NULL
+  \item \texttt{created\_at} TIMESTAMP DEFAULT CURRENT\_TIMESTAMP
+  \item Indexes: \texttt{idx\_poems\_language}, \texttt{idx\_poems\_season}, \texttt{idx\_poems\_location}
+\end{itemize}
+
+\subsection*{calendar}
+\begin{itemize}
+  \item \texttt{id} INT AUTO\_INCREMENT PRIMARY KEY
+  \item \texttt{gregorian\_date} DATE NOT NULL UNIQUE
+  \item \texttt{day} VARCHAR(20)
+  \item \texttt{hindi\_date}, \texttt{gujarati\_date}, \texttt{bengali\_date}, \texttt{rajasthani\_date} VARCHAR(255)
+  \item \texttt{created\_at} TIMESTAMP
+  \item Index: \texttt{idx\_calendar\_gregorian}
+\end{itemize}
+
+\section*{Relationships and constraints}
+- \texttt{sessions.user\_id} references \texttt{users.id} (cascade delete).
+- \texttt{messages.user\_id} references \texttt{users.id} (cascade delete).
+- \texttt{messages.session\_id} references \texttt{sessions.session\_id} (on delete set null).
+
+\section*{Where tables are used in code}
+- \texttt{users}: created/read in \texttt{models.create\_user}, \texttt{models.get\_user\_by\_email}, \texttt{models.get\_user\_by\_uid}, social-login helpers \texttt{create\_google\_user} and queries used by routers in \texttt{routers/users.py} and \texttt{routers/auth\_routes.py}.
+- \texttt{sessions}: managed in \texttt{models.create\_session}, \texttt{models.get\_sessions\_by\_user}, \texttt{models.end\_session}, used by \texttt{routers/sessions.py}.
+- \texttt{messages}: append/read via \texttt{models.save\_message}, \texttt{models.get\_messages}, \texttt{models.get\_messages\_by\_session}, \texttt{models.delete\_message}; used by \texttt{routers/chat.py}.
+- \texttt{poems}: CRUD and queries implemented in \texttt{models.create\_poem}, \texttt{models.get\_poems*}, \texttt{models.delete\_poem}; used by \texttt{routers/poems.py} (including CSV upload).
+- \texttt{calendar}: rows inserted by \texttt{models.insert\_calendar\_row} and \texttt{models.insert\_csv\_into\_calendar}; read by \texttt{models.get\_calendar\_month} and \texttt{models.get\_calendar\_for\_user}; used by \texttt{routers/calendar.py} and \texttt{routers/upload.py}.
+
+\section*{Connection notes and operational guidance}
+- \texttt{get\_connection()} returns a fresh \texttt{mysql.connector} connection using \texttt{DB\_CONFIG}. The connector's behaviour (pooling, threads) depends on runtime environment and connector defaults — consider using a connection pool if concurrency increases.
+- \texttt{DB\_CONFIG} sets \texttt{autocommit: True} by default; many model functions call \texttt{conn.commit()} explicitly. Review commit/rollback semantics for error handling.
+- SSL: if \texttt{DB\_SSL\_MODE} is set to 'REQUIRED', the code will enable SSL-related flags; ensure correct certificates/parameters for cloud DB providers.
+
+\section*{Indexes and performance}
+- Indexes are created for message queries (by user and session + created\_at) and poems filtering (language, season, location). Calendar table has an index on \texttt{gregorian\_date} for fast monthly lookups.
+
+\section*{Caveats and recommended improvements}
+- Consider using a proper connection pool (or SQLAlchemy engine) to improve concurrency handling and reduce connection cost.
+- Add explicit migrations (Alembic or similar) rather than SQL DDL in application code for safer schema evolution.
+- Add constraints/length validations consistent with the app-level schemas (e.g., ensure photoURL length or separate OAuth id columns consistently).
+
+% End of database documentation

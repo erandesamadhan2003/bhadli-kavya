@@ -1,0 +1,479 @@
+
+% Merged documentation for Bhadli Kavya
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage[utf8]{inputenc}
+\usepackage[hidelinks]{hyperref}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{fancyvrb}
+\usepackage{titling}
+
+\title{Bhadli Kavya — Complete Project Documentation}
+\author{Bhadli Kavya Team}
+\date{\today}
+
+\begin{document}
+\maketitle
+\tableofcontents
+\newpage
+
+% ------------------ Getting Started (from doc1.tex) ------------------
+\section{Getting Started}
+
+% Content taken from doc1.tex (Quick start and overview)
+\begin{itemize}[leftmargin=*]
+	\item \textbf{Name:} Bhadli Kavya -- Poetry \& Calendar Application
+	\item \textbf{Stack:} React Native (Expo Web) frontend, FastAPI backend
+	\item \textbf{Database:} Aiven Cloud MySQL (recommended) or local MySQL
+	\item \textbf{Delivery:} Containerized with Docker and Docker Compose
+\end{itemize}
+
+\subsection{Quick Start for Developers}
+\subsubsection{Prerequisites}
+Install the following before attempting to run the project:
+\begin{itemize}
+	\item Docker -- see: \url{https://docs.docker.com/get-docker/}
+	\item Docker Compose -- see: \url{https://docs.docker.com/compose/install/}
+	\item Git
+\end{itemize}
+
+\subsection{Setup Instructions}
+This section describes the steps to obtain and configure the project for development.
+
+\subsubsection{1. Clone the Repository}
+Open a terminal and run:
+\begin{Verbatim}[fontsize=\small]
+git clone https://github.com/erandesamadhan2003/bhadli-kavya.git
+cd bhadli-kavya
+\end{Verbatim}
+
+\subsubsection{2. Configure Environment Variables}
+Create a working \texttt{.env} from the template:
+\begin{Verbatim}[fontsize=\small]
+cp .env.example .env
+\end{Verbatim}
+
+Edit the new \texttt{.env} file (examples below) and fill in credentials and host information:
+\begin{Verbatim}[fontsize=\small]
+# Example variables to update:
+DB_HOST=your-database-host
+DB_PORT=your-database-port
+DB_USER=your-database-user
+DB_PASSWORD=your-database-password
+DB_NAME=your-database-name
+\end{Verbatim}
+
+Important notes:
+\begin{itemize}
+	\item Use your own Aiven MySQL credentials or a local MySQL instance as described in the Database Configuration section.
+	\item Do not commit the \texttt{.env} file to version control.
+\end{itemize}
+
+\subsubsection{3. Start the Application}
+Use the provided script to build and start all services:
+\begin{Verbatim}[fontsize=\small]
+./start-docker.sh
+\end{Verbatim}
+
+This script performs the following actions:
+\begin{itemize}
+	\item Builds Docker images for frontend and backend
+	\item Starts all services defined in \texttt{docker-compose.yml}
+	\item Prints access URLs when startup completes
+\end{itemize}
+
+\subsection{Access the Application}
+After containers start, use a browser to open the following URLs (default configuration):
+\begin{longtable}{p{0.25\textwidth} p{0.55\textwidth}}
+\textbf{Service} & \textbf{URL and Description} \\
+\hline
+Frontend & http://localhost:8081 -- React/Expo Web application \\
+Backend API & http://localhost:8000 -- FastAPI REST API server \\
+API Docs & http://localhost:8000/docs -- Swagger / interactive API documentation \\
+\end{longtable}
+
+\subsection{Development Commands}
+Common docker-compose and maintenance commands used during development:
+\subsubsection*{View Logs}
+\begin{Verbatim}[fontsize=\small]
+# All services
+docker-compose logs -f
+
+# Backend only
+docker-compose logs -f backend
+
+# Frontend only
+docker-compose logs -f frontend
+\end{Verbatim}
+
+\subsubsection*{Stop / Restart / Status}
+\begin{Verbatim}[fontsize=\small]
+docker-compose stop
+docker-compose restart
+docker-compose ps
+\end{Verbatim}
+
+\subsection{Cleanup (When Done Working)}
+To remove project containers and images and free disk space run:
+\begin{Verbatim}[fontsize=\small]
+./cleanup-docker.sh
+\end{Verbatim}
+
+What this script does:
+\begin{itemize}
+	\item Removes all project containers
+	\item Removes all project images created for the project
+	\item Frees up disk space
+	\item Preserves your code files (no source deletion)
+\end{itemize}
+
+\subsection{Complete Developer Workflow}
+Recommended daily workflow:
+\begin{enumerate}
+	\item Start services: \texttt{./start-docker.sh}
+	\item Develop: frontend in \texttt{./frontend/}, backend in \texttt{./backend/}
+	\item Monitor logs as needed: \texttt{docker-compose logs -f}
+	\item When finished: \texttt{./cleanup-docker.sh}
+	\item Next session: \texttt{./start-docker.sh}
+\end{enumerate}
+
+\subsection{Project Structure}
+Top-level repository layout (abridged):
+\begin{Verbatim}[fontsize=\small]
+bhadli-kavya/
+├── backend/              # FastAPI backend
+├── frontend/             # React/Expo frontend
+├── docker-compose.yml    # Service orchestration
+├── start-docker.sh       # Start script
+├── cleanup-docker.sh     # Cleanup script
+├── .env                  # Your environment variables (DO NOT COMMIT)
+└── .env.example          # Environment template
+\end{Verbatim}
+
+% Database options from doc1.tex are included in the Database section below
+
+\newpage
+
+% ------------------ Backend (from backend/backend.tex) ------------------
+\section{Backend}
+
+% Backend Overview and API details (sourced from backend/backend.tex)
+\section*{Backend Overview}
+This backend is a FastAPI application (entry: \texttt{main.py}) that registers multiple routers, initializes the MySQL database on startup via \texttt{database.init\_db()}, and exposes a set of JSON REST endpoints. CORS is enabled for all origins (development configuration).
+
+\section*{Global behavior}
+- App: FastAPI (title: "Kavya Backend API", version 1.0.0)
+- DB initialization: \texttt{database.init\_db()} called in \texttt{main.py} on import/startup.
+- Authentication: JWT-based, helpers in \texttt{auth.py} (\texttt{create\_jwt} and \texttt{get\_current\_user\_id}), tokens expected in `Authorization: Bearer <token>` header.
+
+\section*{Routers and APIs}
+Below is a concise list of routes, HTTP methods, auth requirements, brief description, and the backend functions they call.
+
+\subsection*{Root / Health}
+- GET / : Returns status message (no auth). Implemented in \texttt{main.py}.
+- GET /health : Simple health check (no auth). Implemented in \texttt{main.py}.
+
+\subsection*{Users (prefix: /users)}
+- POST /users/signup : Create or return existing user. Body: \texttt{schemas.UserCreate}. Calls \texttt{models.get\_user\_by\_email} and \texttt{models.create\_user}. Returns JWT via \texttt{auth.create\_jwt} and user data.
+- POST /users/login : Login with email/password. Body: \texttt{schemas.UserLogin}. Verifies password via \texttt{models.verify\_password}. Returns JWT and user data.
+- GET /users/ : List users (response model: list of \texttt{schemas.UserOut}). No auth enforced in code.
+
+\subsection*{Auth (prefix: /api/auth)}
+- POST /api/auth/google/callback : Google OAuth callback. Body: { token: string }. Verifies Google ID token and calls \texttt{models.get\_user\_by\_google\_id} or \texttt{models.create\_google\_user}. Returns JWT + user.
+- GET /api/auth/me : Returns current user profile. Depends on JWT (\texttt{auth.get\_current\_user\_id}) and calls \texttt{models.get\_user\_by\_id}.
+
+\subsection*{Poems (prefix: /api/poems)}
+- POST /api/poems/create (auth required) : Create a poem. Body: JSON with keys \texttt{poem, language, season, location}. Calls \texttt{models.create\_poem}.
+- GET /api/poems/ : List poems with optional query filters: \texttt{language}, \texttt{season}, \texttt{location}. Calls \texttt{models.get\_poems}.
+- GET /api/poems/{poem\_id} : Get poem by id. Calls \texttt{models.get\_poem\_by\_id}.
+- DELETE /api/poems/{poem\_id} (auth required) : Delete poem. Calls \texttt{models.delete\_poem}.
+- GET /api/poems/language/{language} : Get recent poems in a language. Calls \texttt{models.get\_poems\_by\_language} (supports `limit` and `before`).
+- GET /api/poems/season/{season} : Get poems by (possibly mapped) season patterns. Uses \texttt{models.get\_poems\_by\_season\_patterns} and in-router \texttt{SEASON\_MAPPING}.
+- GET /api/poems/location/{location} : Get poems by location. Calls \texttt{models.get\_poems\_by\_location}.
+- GET /api/poems/season-counts : Returns counts grouped by season. Calls \texttt{models.get\_poem\_counts\_by\_season}.
+- POST /api/poems/upload-csv : Upload a CSV of poems (multipart file). Parses CSV and inserts into \texttt{poems} table.
+
+\subsection*{Upload (no prefix)}
+- POST /upload-csv/ : Upload a calendar CSV file and a form field \texttt{calendar\_type} (one of 'hindi', 'gujarati', 'bengali'). Saves file to \texttt{uploads/} and calls \texttt{models.insert\_csv\_into\_calendar}.
+
+\subsection*{Calendar (prefix: /api/calendar)}
+- POST /api/calendar/upload-csv : Upload calendar CSV (server reads file stream) and inserts rows via \texttt{models.insert\_calendar\_row}.
+- GET /api/calendar/month?year=&month=&calendar= : Returns monthly mapping for given calendar type. Calls \texttt{models.get\_calendar\_month}.
+- GET /api/calendar/me : Returns the logged-in user's preferred calendar view for current month. Depends on JWT and calls \texttt{models.get\_calendar\_for\_user}.
+
+\subsection*{Sessions (prefix: /api/sessions)}
+- POST /api/sessions/create (auth) : Create a new session (conversation) for user. Calls \texttt{models.create\_session}.
+- GET /api/sessions/ (auth) : List sessions for the user. Calls \texttt{models.get\_sessions\_by\_user}.
+- PUT /api/sessions/{session\_id}/end (auth) : End a session. Calls \texttt{models.end\_session}.
+- GET /api/sessions/{session\_id} (auth) : Get session details. Calls \texttt{models.get\_session\_by\_id}.
+
+\subsection*{Chat (prefix: /api/chat)}
+- POST /api/chat/send (auth) : Send a message in a session. Body expects \texttt{message} and \texttt{session\_id}. Saves message via \texttt{models.save\_message}, fetches recent session messages, synthesizes an AI response (placeholder) and saves it.
+- GET /api/chat/history (auth) : Query params: \texttt{session\_id} (optional), \texttt{limit}, \texttt{before}. Returns chat history using \texttt{models.get\_messages} or \texttt{models.get\_messages\_by\_session}.
+- DELETE /api/chat/message/{message\_id} (auth) : Deletes a message if owned by user via \texttt{models.delete\_message}. If exists but other user owns it, returns 403.
+
+\section*{Auth details}
+- Tokens: JWTs created by \texttt{auth.create\_jwt} include `sub` (user id) and expire in 7 days. \texttt{auth.get\_current\_user\_id} expects header `Authorization: Bearer <token>` and returns the user id or throws 401.
+
+\section*{Notes and implementation details}
+- Many endpoints use raw MySQL connections via \texttt{database.get\_connection()} and execute SQL with parameterized queries.
+- The code mixes utility-style functions in \texttt{models.py} with small router handlers; concurrency consequences (connection pooling) depend on MySQL connector settings.
+- For CSV uploads, the backend expects specific CSV column names depending on the target (poems or calendars).
+
+\newpage
+
+% ------------------ Database (from backend/database.tex) ------------------
+\section{Database}
+
+% Overview from backend/database.tex
+\subsection*{Overview}
+The backend uses MySQL via \texttt{mysql.connector}. Configuration is read from a top-level ".env" file (look one directory above the \texttt{backend} folder). Key environment variables used in \texttt{database.py} are:
+
+\begin{itemize}
+  \item \texttt{DB\_HOST} (default: localhost)
+  \item \texttt{DB\_PORT} (default: 3306)
+  \item \texttt{DB\_USER} (default: root)
+  \item \texttt{DB\_PASSWORD} (no default; expected in .env)
+  \item \texttt{DB\_NAME} (default: bhadli\_kavya)
+  \item \texttt{DB\_SSL\_MODE} (controls SSL behaviour; defaults to DISABLED)
+\end{itemize}
+
+The connection dictionary is exposed as \texttt{DB\_CONFIG} and used by \texttt{get\_connection()} to open connections. \texttt{init\_db()} creates the database (if missing) and all required tables.
+
+\subsection*{Initialization behavior}
+On startup, \texttt{init\_db()} performs these actions:
+\begin{enumerate}
+  \item Create the database if it does not exist and switch to it.
+  \item Create tables: \texttt{users}, \texttt{sessions}, \texttt{messages}, \texttt{poems}, \texttt{calendar} (with the SQL shown below).
+  \item Ensure indexes on messages and poems and calendar for query performance.
+\end{enumerate}
+
+\subsection*{Schema (tables and columns)}
+Below are the tables created by \texttt{init\_db()} with important columns, constraints and indexes.
+
+\subsubsection*{users}
+\begin{itemize}
+  \item \texttt{id} INT AUTO\_INCREMENT PRIMARY KEY
+  \item \texttt{email} VARCHAR(255) UNIQUE NOT NULL
+  \item \texttt{password} TEXT NOT NULL
+  \item \texttt{name} VARCHAR(255)
+  \item \texttt{uid} VARCHAR(255) UNIQUE (used for social logins or external IDs)
+  \item \texttt{auth\_provider} VARCHAR(50) DEFAULT 'email'
+  \item \texttt{location} VARCHAR(255)
+  \item \texttt{calendar\_preference} VARCHAR(50) DEFAULT 'gregorian'
+  \item \texttt{created\_at}, \texttt{updated\_at} TIMESTAMP columns
+\end{itemize}
+
+\subsubsection*{sessions}
+\begin{itemize}
+  \item \texttt{session\_id} CHAR(36) PRIMARY KEY
+  \item \texttt{user\_id} INT NOT NULL (FK -> \texttt{users.id} ON DELETE CASCADE)
+  \item \texttt{title} TEXT, \texttt{status} VARCHAR(20) DEFAULT 'active'
+  \item \texttt{started\_at}, \texttt{ended\_at} timestamps
+\end{itemize}
+
+\subsubsection*{messages}
+\begin{itemize}
+  \item \texttt{message\_id} CHAR(36) PRIMARY KEY
+  \item \texttt{session\_id} CHAR(36) (FK -> \texttt{sessions.session\_id}, ON DELETE SET NULL)
+  \item \texttt{user\_id} INT NOT NULL (FK -> \texttt{users.id} ON DELETE CASCADE)
+  \item \texttt{role} VARCHAR(10) NOT NULL CHECK (role IN ('user','model'))
+  \item \texttt{content} TEXT NOT NULL
+  \item \texttt{created\_at} TIMESTAMP DEFAULT CURRENT\_TIMESTAMP
+  \item Indexes: \texttt{idx\_messages\_user\_id\_created\_at} and \texttt{idx\_messages\_session\_created\_at}
+\end{itemize}
+
+\subsubsection*{poems}
+\begin{itemize}
+  \item \texttt{poem\_id} CHAR(36) PRIMARY KEY
+  \item \texttt{poem} TEXT NOT NULL
+  \item \texttt{language} VARCHAR(100) NOT NULL
+  \item \texttt{season} VARCHAR(50) NOT NULL
+  \item \texttt{location} VARCHAR(150) NOT NULL
+  \item \texttt{created\_at} TIMESTAMP DEFAULT CURRENT\_TIMESTAMP
+  \item Indexes: \texttt{idx\_poems\_language}, \texttt{idx\_poems\_season}, \texttt{idx\_poems\_location}
+\end{itemize}
+
+\subsubsection*{calendar}
+\begin{itemize}
+  \item \texttt{id} INT AUTO\_INCREMENT PRIMARY KEY
+  \item \texttt{gregorian\_date} DATE NOT NULL UNIQUE
+  \item \texttt{day} VARCHAR(20)
+  \item \texttt{hindi\_date}, \texttt{gujarati\_date}, \texttt{bengali\_date}, \texttt{rajasthani\_date} VARCHAR(255)
+  \item \texttt{created\_at} TIMESTAMP
+  \item Index: \texttt{idx\_calendar\_gregorian}
+\end{itemize}
+
+\subsection*{Relationships and constraints}
+- \texttt{sessions.user\_id} references \texttt{users.id} (cascade delete).
+- \texttt{messages.user\_id} references \texttt{users.id} (cascade delete).
+- \texttt{messages.session\_id} references \texttt{sessions.session\_id} (on delete set null).
+
+\subsection*{Where tables are used in code}
+- \texttt{users}: created/read in \texttt{models.create\_user}, \texttt{models.get\_user\_by\_email}, \texttt{models.get\_user\_by\_uid}, social-login helpers \texttt{create\_google\_user} and queries used by routers in \texttt{routers/users.py} and \texttt{routers/auth\_routes.py}.
+- \texttt{sessions}: managed in \texttt{models.create\_session}, \texttt{models.get\_sessions\_by\_user}, \texttt{models.end\_session}, used by \texttt{routers/sessions.py}.
+- \texttt{messages}: append/read via \texttt{models.save\_message}, \texttt{models.get\_messages}, \texttt{models.get\_messages\_by\_session}, \texttt{models.delete\_message}; used by \texttt{routers/chat.py}.
+- \texttt{poems}: CRUD and queries implemented in \texttt{models.create\_poem}, \texttt{models.get\_poems*}, \texttt{models.delete\_poem}; used by \texttt{routers/poems.py} (including CSV upload).
+- \texttt{calendar}: rows inserted by \texttt{models.insert\_calendar\_row} and \texttt{models.insert\_csv\_into\_calendar}; read by \texttt{models.get\_calendar\_month} and \texttt{models.get\_calendar\_for\_user}; used by \texttt{routers/calendar.py} and \texttt{routers/upload.py}.
+
+\subsection*{Connection notes and operational guidance}
+- \texttt{get\_connection()} returns a fresh \texttt{mysql.connector} connection using \texttt{DB\_CONFIG}. The connector's behaviour (pooling, threads) depends on runtime environment and connector defaults — consider using a connection pool if concurrency increases.
+- \texttt{DB\_CONFIG} sets \texttt{autocommit: True} by default; many model functions call \texttt{conn.commit()} explicitly. Review commit/rollback semantics for error handling.
+- SSL: if \texttt{DB\_SSL\_MODE} is set to 'REQUIRED', the code will enable SSL-related flags; ensure correct certificates/parameters for cloud DB providers.
+
+\subsection*{Indexes and performance}
+- Indexes are created for message queries (by user and session + created\_at) and poems filtering (language, season, location). Calendar table has an index on \texttt{gregorian\_date} for fast monthly lookups.
+
+\subsection*{Caveats and recommended improvements}
+- Consider using a proper connection pool (or SQLAlchemy engine) to improve concurrency handling and reduce connection cost.
+- Add explicit migrations (Alembic or similar) rather than SQL DDL in application code for safer schema evolution.
+- Add constraints/length validations consistent with the app-level schemas (e.g., ensure photoURL length or separate OAuth id columns consistently).
+
+\newpage
+
+% ------------------ Frontend (from frontend/frontend.tex) ------------------
+\section{Frontend}
+
+% The following content is sourced from frontend/frontend.tex (services, hooks, store, components, screens)
+
+\subsection{Overview}
+This document describes the entire frontend folder: services, hooks, Redux store, components, and screens. It explains each exported function, what it does, and how the UI flow connects screens and user actions to services and store updates.
+
+\subsection{Project structure (files covered)}
+Important folders and files documented here:
+\begin{itemize}
+	\item services/: API wrappers (poems, season, sessions, calendar, auth, chat)
+	\item hooks/: custom React hooks that connect UI to services/store
+	\item store/: Redux store configuration and slices (auth, chat, sessions)
+	\item components/: reusable UI components (chat, calendar, home)
+	\item screens/: screen-level components (Home, Calender, Chat, SeasonPoem, auth screens)
+	\item api/api.js: Axios instance and interceptors
+	\item utils/: validation utilities
+\end{itemize}
+
+\subsection{API layer (api/api.js)}
+\begin{itemize}
+	\item \textbf{BASE\_URL} — platform-dependent base URL used by axios.
+	\item axios instance: default JSON content-type and 30s timeout.
+	\item Request interceptor: reads \texttt{access\\_token} from AsyncStorage and sets \texttt{Authorization: Bearer <token>} header.
+	\item Response interceptor: on 401 it clears stored token and user from AsyncStorage.
+\end{itemize}
+
+\subsection{Services (services/*.js)}
+Each service is a thin wrapper around HTTP endpoints. Functions below return response data or throw an error object.
+
+\subsubsection{poems.service.js}
+\begin{itemize}
+	\item \textbf{createPoem(poem, language, season, location)} — POST /api/poems/create. Create a poem entry.
+	\item \textbf{getPoems(filters)} — GET /api/poems/ with query params. Returns list of poems (filters: language, season, location, pagination).
+	\item \textbf{getPoem(poemId)} — GET /api/poems/:id. Returns a single poem.
+	\item \textbf{deletePoem(poemId)} — DELETE /api/poems/:id. Delete poem.
+	\item \textbf{getPoemsByLanguage(language, limit, before)} — GET /api/poems/language/:language.
+	\item \textbf{getPoemsBySeason(season, limit)} — GET /api/poems/season/:season.
+	\item \textbf{getPoemsByLocation(location, limit)} — GET /api/poems/location/:location.
+	\item \textbf{getSeasonCounts()} — GET /api/poems/season-counts.
+	\item \textbf{uploadPoemsCSV(file)} — POST /api/poems/upload-csv (multipart/form-data).
+\end{itemize}
+
+\subsubsection{season.service.js}
+\begin{itemize}
+	\item \textbf{getSeasonPoems(seasonName, limit)} — calls \texttt{poemsService.getPoemsBySeason}.
+	\item \textbf{getSeasonCounts()} — calls \texttt{poemsService.getSeasonCounts}.
+	\item \textbf{getCurrentSeason()} — local utility that returns 'spring', 'summer', 'autumn', or 'winter' by current month.
+\end{itemize}
+
+\subsubsection{sessions.service.js}
+\begin{itemize}
+	\item \textbf{createSession(title)} — POST /api/sessions/create. Creates chat session with given title; default 'Untitled Session'. Returns session payload.
+	\item \textbf{getSessions()} — GET /api/sessions/. Returns list of sessions.
+	\item \textbf{endSession(sessionId)} — PUT /api/sessions/:id/end. Marks session ended.
+	\item \textbf{getSession(sessionId)} — GET /api/sessions/:id. Returns session details.
+\end{itemize}
+
+\subsubsection{calendar.service.js}
+\begin{itemize}
+	\item \textbf{getCalendarMonth(year, month, calendar)} — GET /api/calendar/month?year=&month=&calendar=. Returns calendar month data (dates array, metadata).
+	\item \textbf{getMyCalendar()} — GET /api/calendar/me. Returns user-preferred calendar data.
+\end{itemize}
+
+\subsubsection{auth.service.js}
+\begin{itemize}
+	\item \textbf{signup(userData)} — POST /users/signup. Stores access token and user in AsyncStorage on success.
+	\item \textbf{login(email, password)} — POST /users/login. Stores access token and user on success.
+	\item \textbf{googleLogin(token)} — POST /api/auth/google/callback. Stores access token and user on success.
+	\item \textbf{getProfile()} — GET /api/auth/me. Returns profile.
+	\item \textbf{logout()} — Clears token and user from AsyncStorage.
+	\item \textbf{getCurrentUser()} — Reads stored user from AsyncStorage.
+	\item \textbf{isAuthenticated()} — Checks for stored token in AsyncStorage.
+\end{itemize}
+
+\subsubsection{chat.service.js}
+\begin{itemize}
+	\item \textbf{sendMessage(message, sessionId)} — POST /api/chat/send. Requires \texttt{sessionId}. Returns AI model response plus message metadata.
+	\item \textbf{getChatHistory(sessionId, limit, before)} — GET /api/chat/history with params. Returns messages (pagination supported via \texttt{before}).
+	\item \textbf{deleteMessage(messageId)} — DELETE /api/chat/message/:id.
+\end{itemize}
+
+\subsection{Redux store (store/)}
+\subsubsection{store.js}
+\begin{itemize}
+	\item Configures Redux store with reducers: \texttt{auth}, \texttt{chat}, \texttt{sessions}.
+	\item Middleware: default with serializableCheck disabled; devTools enabled with tracing.
+\end{itemize}
+
+\subsubsection{slices}
+\textbf{authSlice.js}
+\begin{itemize}
+	\item State: \texttt{user, token, isAuthenticated, isLoading, error}.
+	\item Thunks: signup, login, googleLogin, getProfile, logout, checkAuth (see source for details).
+\end{itemize}
+
+\textbf{sessionsSlice.js}
+\begin{itemize}
+	\item State: \texttt{sessions[], currentSession, isLoading, error}.
+	\item Thunks: \texttt{createSession, getSessions, endSession, getSession}.
+\end{itemize}
+
+\textbf{chatSlice.js}
+\begin{itemize}
+	\item State: \texttt{messages[], currentSessionId, isLoading, isSending, error, hasMore}.
+	\item Thunks: \texttt{sendMessage, getChatHistory, deleteMessage} and reducers for optimistic updates.
+\end{itemize}
+
+\subsection{Hooks (hooks/*)}
+Hooks wrap dispatch/selectors or services and provide ready-to-use functions for screens (\texttt{useAuth, useChat, useSessions, usePoems, useCalendar}). See source for exact APIs and returned values.
+
+\subsection{Components (components/*)}
+Key exported UI components: \textbf{ChatInput}, \textbf{MessageBubble}, \textbf{SessionsList}, \textbf{CalendarHeader}, \textbf{CalendarGrid}, \textbf{Authentication}, \textbf{SeasonCircle}. Props and behaviors documented in source files.
+
+\subsection{Screens (screens/*) — UI flow and button interactions}
+High-level flows are covered in the project: Home, Calender, SeasonPoem, Chat, and Auth screens. Important behaviors include optimistic message handling in chat, session creation/selection, calendar navigation, and season-based poem browsing.
+
+\subsection{Utilities (utils/*)}
+Validation helpers: \texttt{validateEmail}, \texttt{validatePassword}, \texttt{validateName}, \texttt{validatePasswordMatch}, and form validators like \texttt{validateSignupForm} and \texttt{validateLoginForm}.
+
+\subsection{UI-to-Service flow summary}
+\begin{enumerate}
+	\item Auth flow: Signup/Login -> \texttt{useAuth} dispatches thunks -> \texttt{authService} calls API -> token stored in AsyncStorage -> api interceptor attaches token -> profile/state hydrated.
+	\item Poems/Season flow: Season selection -> \texttt{usePoems.getPoemsBySeason} -> service -> renders poems list.
+	\item Calendar flow: Calendar header navigation -> \texttt{useCalendar.getCalendarMonth} -> service -> \texttt{CalendarGrid} renders results.
+	\item Chat flow: Create/select session -> set currentSessionId in chat slice -> \texttt{getChatHistory} loads messages -> send message via \texttt{chatService.sendMessage} with optimistic UI update -> handle model response appended to messages.
+\end{enumerate}
+
+\subsection{Developer notes and important behaviors}
+\begin{itemize}
+	\item Optimistic messages: created with ids starting with \texttt{temp-} by \texttt{useChat}. UI treats optimistic messages with reduced opacity and hides delete action until confirmed.
+	\item Token storage: \texttt{auth.service} persists \texttt{access\\_token} and \texttt{user} to AsyncStorage. \texttt{api} interceptor attaches token to requests.
+	\item Error handling: Services throw either \texttt{error.response.data} or \texttt{error.message}. Hooks convert these into local \texttt{error} state or reject promises.
+	\item Navigation: \texttt{App.jsx} defines named routes and deep-linking config. Route names used by components: \texttt{home}, \texttt{calender}, \texttt{signup}, \texttt{login}, \texttt{seasonPoem}, \texttt{chat}.
+\end{itemize}
+
+\section*{Final Remarks}
+This document merges the Getting Started, Backend, Database, and Frontend documentation into a single reference file.
+
+\vfill
+\noindent{\small Generated by documentation merge on \today}
+
+\end{document}
+

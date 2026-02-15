@@ -7,12 +7,13 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from "react-native";
-import { useRoute } from "@react-navigation/native";
+import { useRoute, useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { usePoems } from "../hooks";
 
 export const SeasonPoem = () => {
   const route = useRoute();
+  const navigation = useNavigation();
   const { season } = route.params || {};
   const { getPoemsBySeason, isLoading, error } = usePoems();
   const [poems, setPoems] = useState([]);
@@ -23,7 +24,7 @@ export const SeasonPoem = () => {
 
   const loadPoems = async () => {
     try {
-      const response = await getPoemsBySeason(season, 5); // Changed to 5
+      const response = await getPoemsBySeason(season, 5);
       setPoems(response.poems || []);
     } catch (err) {
       console.error("Failed to load poems:", err);
@@ -88,7 +89,23 @@ export const SeasonPoem = () => {
             </View>
           ) : (
             poems.map((poem, index) => (
-              <View key={poem.poem_id} style={styles.poemCard}>
+              <TouchableOpacity
+                key={poem.poem_id}
+                style={styles.poemCard}
+                activeOpacity={0.8}
+                onPress={() => {
+                  if (poem.location?.toLowerCase() === "gujarat") {
+                    navigation.navigate("MapScreen", {
+                      poemId: poem.poem_id,
+                      location: poem.location,
+                      poem: poem.poem,
+                      season: poem.season,
+                    });
+                  } else {
+                    alert("Map is available only for Gujarat poems 🌍");
+                  }
+                }}
+              >
                 <View style={styles.poemHeader}>
                   <Text style={styles.poemNumber}>#{index + 1}</Text>
                   <View style={styles.poemMeta}>
@@ -96,14 +113,16 @@ export const SeasonPoem = () => {
                     <Text style={styles.metaText}>📍 {poem.location}</Text>
                   </View>
                 </View>
+
                 <Text style={styles.poemText}>{poem.poem}</Text>
+
                 <View style={styles.poemFooter}>
                   <Text style={styles.seasonTag}>{poem.season}</Text>
                   <Text style={styles.dateText}>
                     {new Date(poem.created_at).toLocaleDateString()}
                   </Text>
                 </View>
-              </View>
+              </TouchableOpacity>
             ))
           )}
         </View>

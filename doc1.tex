@@ -1,0 +1,263 @@
+% LaTeX documentation converted from README.md
+\documentclass[11pt]{article}
+\usepackage[a4paper,margin=1in]{geometry}
+\usepackage[hidelinks]{hyperref}
+\usepackage{longtable}
+\usepackage{enumitem}
+\usepackage{fancyvrb}
+\usepackage{titling}
+
+\title{Bhadli Kavya -- Project Documentation}
+\author{Bhadli Kavya Team}
+\date{\today}
+
+\begin{document}
+\maketitle
+\thispagestyle{empty}
+
+\section*{Overview}
+\begin{itemize}[leftmargin=*]
+	\item \textbf{Name:} Bhadli Kavya -- Poetry \& Calendar Application
+	\item \textbf{Stack:} React Native (Expo Web) frontend, FastAPI backend
+	\item \textbf{Database:} Aiven Cloud MySQL (recommended) or local MySQL
+	\item \textbf{Delivery:} Containerized with Docker and Docker Compose
+\end{itemize}
+
+\section{Quick Start for Developers}
+\subsection{Prerequisites}
+Install the following before attempting to run the project:
+\begin{itemize}
+	\item Docker -- see: \url{https://docs.docker.com/get-docker/}
+	\item Docker Compose -- see: \url{https://docs.docker.com/compose/install/}
+	\item Git
+\end{itemize}
+
+\section{Setup Instructions}
+This section describes the steps to obtain and configure the project for development.
+
+\subsection{1. Clone the Repository}
+Open a terminal and run:
+\begin{Verbatim}[fontsize=\small]
+git clone https://github.com/erandesamadhan2003/bhadli-kavya.git
+cd bhadli-kavya
+\end{Verbatim}
+
+\subsection{2. Configure Environment Variables}
+Create a working \texttt{.env} from the template:
+\begin{Verbatim}[fontsize=\small]
+cp .env.example .env
+\end{Verbatim}
+
+Edit the new \texttt{.env} file (examples below) and fill in credentials and host information:
+\begin{Verbatim}[fontsize=\small]
+# Example variables to update:
+DB_HOST=your-database-host
+DB_PORT=your-database-port
+DB_USER=your-database-user
+DB_PASSWORD=your-database-password
+DB_NAME=your-database-name
+\end{Verbatim}
+
+Important notes:
+\begin{itemize}
+	\item Use your own Aiven MySQL credentials or a local MySQL instance as described in the Database Configuration section.
+	\item Do not commit the \texttt{.env} file to version control.
+\end{itemize}
+
+\subsection{3. Start the Application}
+Use the provided script to build and start all services:
+\begin{Verbatim}[fontsize=\small]
+./start-docker.sh
+\end{Verbatim}
+
+This script performs the following actions:
+\begin{itemize}
+	\item Builds Docker images for frontend and backend
+	\item Starts all services defined in \texttt{docker-compose.yml}
+	\item Prints access URLs when startup completes
+\end{itemize}
+
+\section{Access the Application}
+After containers start, use a browser to open the following URLs (default configuration):
+\begin{longtable}{p{0.25\textwidth} p{0.55\textwidth}}
+\textbf{Service} & \textbf{URL and Description} \\
+\hline
+Frontend & http://localhost:8081 -- React/Expo Web application \\
+Backend API & http://localhost:8000 -- FastAPI REST API server \\
+API Docs & http://localhost:8000/docs -- Swagger / interactive API documentation \\
+\end{longtable}
+
+\section{Development Commands}
+Common docker-compose and maintenance commands used during development:
+\subsection*{View Logs}
+\begin{Verbatim}[fontsize=\small]
+# All services
+docker-compose logs -f
+
+# Backend only
+docker-compose logs -f backend
+
+# Frontend only
+docker-compose logs -f frontend
+\end{Verbatim}
+
+\subsection*{Stop / Restart / Status}
+\begin{Verbatim}[fontsize=\small]
+docker-compose stop
+docker-compose restart
+docker-compose ps
+\end{Verbatim}
+
+\section{Cleanup (When Done Working)}
+To remove project containers and images and free disk space run:
+\begin{Verbatim}[fontsize=\small]
+./cleanup-docker.sh
+\end{Verbatim}
+
+What this script does:
+\begin{itemize}
+	\item Removes all project containers
+	\item Removes all project images created for the project
+	\item Frees up disk space
+	\item Preserves your code files (no source deletion)
+\end{itemize}
+
+\section{Complete Developer Workflow}
+Recommended daily workflow:
+\begin{enumerate}
+	\item Start services: \texttt{./start-docker.sh}
+	\item Develop: frontend in \texttt{./frontend/}, backend in \texttt{./backend/}
+	\item Monitor logs as needed: \texttt{docker-compose logs -f}
+	\item When finished: \texttt{./cleanup-docker.sh}
+	\item Next session: \texttt{./start-docker.sh}
+\end{enumerate}
+
+\section{Project Structure}
+The repository layout (top-level) is:
+\begin{Verbatim}[fontsize=\small]
+bhadli-kavya/
+├── backend/              # FastAPI backend
+│   ├── Dockerfile
+│   ├── main.py
+│   ├── database.py
+│   ├── models.py
+│   ├── routers/
+│   └── requirements.txt
+├── frontend/             # React/Expo frontend
+│   ├── Dockerfile
+│   ├── App.jsx
+│   ├── package.json
+│   ├── components/
+│   ├── screens/
+│   └── services/
+├── docker-compose.yml    # Service orchestration
+├── start-docker.sh       # Start script
+├── cleanup-docker.sh     # Cleanup script
+├── .env                  # Your environment variables (DO NOT COMMIT)
+└── .env.example          # Environment template
+\end{Verbatim}
+
+\section{Database Configuration}
+Two supported options are provided below.
+
+\subsection{Option 1: Aiven Cloud MySQL (Recommended)}
+Steps:
+\begin{enumerate}
+	\item Create a MySQL database on \url{https://aiven.io} or your cloud provider
+	\item Obtain connection credentials from the Aiven console
+	\item Update the project's \texttt{.env} file with the Aiven values
+\end{enumerate}
+
+Example Aiven configuration:
+\begin{Verbatim}[fontsize=\small]
+DB_HOST=your-aiven-host.aivencloud.com
+DB_PORT=21638
+DB_USER=avnadmin
+DB_PASSWORD=your-aiven-password
+DB_NAME=defaultdb
+DB_SSL_MODE=REQUIRED
+\end{Verbatim}
+
+\subsection{Option 2: Local MySQL Database}
+To use a local database instead of a managed Aiven instance:
+\begin{enumerate}
+	\item Uncomment the \texttt{database} service in \texttt{docker-compose.yml}
+	\item Update the \texttt{.env} file with the local database credentials
+	\item Example variables:
+\end{enumerate}
+
+\begin{Verbatim}[fontsize=\small]
+DB_HOST=database
+DB_PORT=3306
+DB_USER=your_username
+DB_PASSWORD=your_password
+DB_NAME=bhadli_kavya
+DB_SSL_MODE=DISABLED
+\end{Verbatim}
+
+\section{Troubleshooting}
+Common problems and solutions.
+
+\subsection{Port Already in Use}
+If ports 8000 or 8081 conflict with other services:
+\begin{enumerate}
+	\item Edit the \texttt{.env} file to change ports:
+\begin{Verbatim}[fontsize=\small]
+API_PORT=9000
+FRONTEND_PORT=9001
+\end{Verbatim}
+	\item Restart with \texttt{./start-docker.sh}
+\end{enumerate}
+
+\subsection{Database Connection Error}
+Verify your \texttt{.env} credentials and then inspect backend logs:
+\begin{Verbatim}[fontsize=\small]
+cat .env
+docker-compose logs backend
+\end{Verbatim}
+
+\subsection{Container Won't Start}
+Rebuild and start fresh:
+\begin{Verbatim}[fontsize=\small]
+./cleanup-docker.sh
+./start-docker.sh
+\end{Verbatim}
+
+\section{Contributing}
+To contribute to the project:
+\begin{enumerate}
+	\item Fork the repository
+	\item Create a feature branch: \texttt{git checkout -b feature/amazing-feature}
+	\item Commit: \texttt{git commit -m 'Add amazing feature'}
+	\item Push: \texttt{git push origin feature/amazing-feature}
+	\item Open a pull request for review
+\end{enumerate}
+
+\section{Important Notes}
+\begin{itemize}
+	\item \textbf{Security:} Never commit the \texttt{.env} file. It contains sensitive credentials.
+	\item \textbf{Template:} Use \texttt{.env.example} as the template for environment variables.
+	\item \textbf{Hot reload:} Containers are configured to hot-reload source changes where supported; code changes should reflect immediately.
+	\item \textbf{Persistence:} Database data persists between restarts when using the local database configuration.
+\end{itemize}
+
+\section{Getting Help}
+If you run into issues:
+\begin{itemize}
+	\item Check logs: \texttt{docker-compose logs -f}
+	\item Check status: \texttt{docker-compose ps}
+	\item Rebuild everything if necessary: \texttt{./cleanup-docker.sh \&\& ./start-docker.sh}
+\end{itemize}
+
+\section*{Final Remarks}
+To quickly get started run:
+\begin{Verbatim}[fontsize=\small]
+./start-docker.sh
+# then open: http://localhost:8081
+\end{Verbatim}
+
+\vfill
+\noindent{\small Made with love by the Bhadli Kavya Team}
+
+\end{document}
+

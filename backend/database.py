@@ -154,10 +154,68 @@ def init_db():
 
         ensure_index("calendar", "idx_calendar_gregorian",
             "CREATE INDEX idx_calendar_gregorian ON calendar(gregorian_date)")
+        
+        
+
+
+        # --------------------------------------------------
+        # 7️⃣ STATES TABLE
+        # --------------------------------------------------
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS states (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            state_name VARCHAR(100) UNIQUE NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+        """)
+
+        # --------------------------------------------------
+        # 8️⃣ DISTRICTS TABLE
+        # --------------------------------------------------
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS districts (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            state_id INT NOT NULL,
+            district_name VARCHAR(100) NOT NULL,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(state_id, district_name),
+            FOREIGN KEY (state_id) REFERENCES states(id) ON DELETE CASCADE
+        )
+        """)
+
+        # --------------------------------------------------
+        # 9️⃣ POEM DISTRICT STATS TABLE
+        # --------------------------------------------------
+        cursor.execute("""
+        CREATE TABLE IF NOT EXISTS poem_district_stats (
+            id INT AUTO_INCREMENT PRIMARY KEY,
+            poem_id CHAR(36) NOT NULL,
+            district_id INT NOT NULL,
+            score FLOAT,
+            count INT,
+            created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+            UNIQUE(poem_id, district_id),
+            FOREIGN KEY (poem_id) REFERENCES poems(poem_id) ON DELETE CASCADE,
+            FOREIGN KEY (district_id) REFERENCES districts(id) ON DELETE CASCADE
+        )
+        """)
+
+        # Indexes for fast search
+        ensure_index("districts", "idx_districts_state",
+            "CREATE INDEX idx_districts_state ON districts(state_id)")
+
+        ensure_index("poem_district_stats", "idx_poem_stats_poem",
+            "CREATE INDEX idx_poem_stats_poem ON poem_district_stats(poem_id)")
+
+        ensure_index("poem_district_stats", "idx_poem_stats_district",
+            "CREATE INDEX idx_poem_stats_district ON poem_district_stats(district_id)")
+
 
         conn.commit()
         conn.close()
         print("✅ Database and all tables created successfully (aligned with API documentation).")
+
+
 
     except mysql.connector.Error as err:
         print(f"❌ Database initialization error: {err}")

@@ -2,12 +2,10 @@ import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Platform } from 'react-native';
 
-// UPDATE THIS URL AFTER DEPLOYING BACKEND
-const PRODUCTION_API_URL = 'https://your-backend-url.onrender.com'; // Replace with your actual deployed URL
-
-const BASE_URL = __DEV__
-    ? (Platform.OS === 'web' ? 'http://127.0.0.1:8000' : 'http://10.100.247.168:8000')
-    : PRODUCTION_API_URL;
+// const BASE_URL = Platform.OS === 'web'
+//     ? 'http://127.0.0.1:8000'
+//     : 'http://10.100.247.168:8000';
+const BASE_URL = 'https://bhadli-kavya.onrender.com';
 
 const api = axios.create({
     baseURL: BASE_URL,

@@ -842,7 +842,7 @@ def get_stats_by_state(state_id: int):
 
     cursor.execute("""
     SELECT 
-        p.poem_id,
+        ps.poem_id,
         d.district_name,
         ps.score,
         ps.count

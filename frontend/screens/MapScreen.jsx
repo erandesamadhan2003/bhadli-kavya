@@ -1,7 +1,7 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { View, StyleSheet, Platform } from "react-native";
+import { useRoute } from "@react-navigation/native";
 
-// only load on mobile
 let WebView = null;
 if (Platform.OS !== "web") {
   WebView = require("react-native-webview").WebView;
@@ -15,9 +15,21 @@ if (Platform.OS === "web") {
 
 export const MapScreen = () => {
   const mapRef = useRef(null);
+  const route = useRoute();
+
+  const [metric, setMetric] = useState("score");
+
+  const location = route?.params?.location || "Gujarat";
+
+  const normalized = location.toLowerCase().replace(/\s/g, "");
+
+  const isUP = normalized === "uttarpradesh";
+
+  const stateName = isUP ? "UttarPradesh" : "Gujarat";
+  const stateId = isUP ? 2 : 1;
 
   // ======================================================
-  // 🌐 WEB VERSION (REAL LEAFLET)
+  // 🌐 WEB VERSION
   // ======================================================
   useEffect(() => {
     if (Platform.OS !== "web") return;
@@ -28,53 +40,56 @@ export const MapScreen = () => {
       attributionControl: false,
     });
 
-    // load geojson
     fetch("/gujarat_district.geojson")
       .then((res) => res.json())
       .then((data) => {
-        const gujaratFeatures = (data.features || []).filter(
-          (f) => f.properties && f.properties.NAME_1 === "Gujarat"
+
+        const features = (data.features || []).filter(
+          (f) => f.properties && f.properties.NAME_1 === stateName
         );
 
-        // 🔥 fetch backend stats
         const token = localStorage.getItem("access_token");
 
-
-        fetch("http://localhost:8000/geo/stats/state/1", {
+        fetch(`http://localhost:8000/geo/stats/state/${stateId}`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         })
           .then((res) => res.json())
           .then((stats) => {
+
             const scoreMap = {};
             stats.forEach((s) => {
               scoreMap[s.district_name.toLowerCase()] = s;
             });
 
-            gujaratFeatures.forEach((f) => {
+            features.forEach((f) => {
+
               const name = f.properties.NAME_2?.toLowerCase();
               const info = scoreMap[name];
 
-              if (info) {
-                const score = info.score;
+              if (info && info[metric] !== undefined) {
 
-                // green scale (0 → red, 1 → green)
-                const hue = Math.round(score * 120);
+                const value = info[metric];
+
+                const normalizedValue =
+                  typeof value === "number"
+                    ? Math.max(0, Math.min(1, value))
+                    : 0;
+
+                const hue = Math.round(normalizedValue * 120);
 
                 f.properties._color = `hsl(${hue},70%,55%)`;
-                f.properties._score = info.score;
-                f.properties._count = info.count;
+                f.properties._value = value;
+
               } else {
                 f.properties._color = "#eee";
+                f.properties._value = "-";
               }
             });
 
             const geoLayer = L.geoJSON(
-              {
-                type: "FeatureCollection",
-                features: gujaratFeatures,
-              },
+              { type: "FeatureCollection", features },
               {
                 style: (feature) => ({
                   color: "#000",
@@ -84,119 +99,208 @@ export const MapScreen = () => {
                 }),
                 onEachFeature: (feature, layer) => {
                   layer.bindTooltip(
-                    `
-                    <b>${feature.properties.NAME_2}</b><br/>
-                    Score: ${feature.properties._score ?? "-"}<br/>
-                    Count: ${feature.properties._count ?? "-"}
-                    `
+                    `<b>${feature.properties.NAME_2}</b><br/>
+                     ${metric}: ${feature.properties._value}`
                   );
                 },
               }
             ).addTo(map);
 
-            map.fitBounds(geoLayer.getBounds());
+            if (features.length > 0) {
+              map.fitBounds(geoLayer.getBounds());
+            }
           })
           .catch((err) => console.error("Stats error:", err));
       })
       .catch((err) => console.error("Geojson error:", err));
 
     return () => map.remove();
-  }, []);
+  }, [location, metric]);
 
   // ======================================================
-  // 🌐 RENDER WEBx 
+  // 🌐 WEB RENDER
   // ======================================================
   if (Platform.OS === "web") {
-    return <div ref={mapRef} style={{ height: "100vh", width: "100%" }} />;
+    return (
+      <View style={styles.container}>
+
+        <div style={styles.dropdownContainer}>
+          <select
+            value={metric}
+            onChange={(e) => setMetric(e.target.value)}
+            style={styles.dropdown}
+          >
+            <option value="total_years">Total_Years</option>
+            <option value="condition_years">Condition_Years</option>
+            <option value="rainfall_mean">Rainfall_mean</option>
+            <option value="rainfall_mean_when_condition_is_true">
+              Rainfall_mean_when_condition_is_true
+            </option>
+            <option value="difference_in_rainfall_percent">
+              Difference_in_Rainfall_percent
+            </option>
+            <option value="hits">Hits</option>
+            <option value="hit_rate">Hit_rate</option>
+            <option value="score">District_Score</option>
+            <option value="correlation_cofficient">
+              Correlation_cofficient
+            </option>
+            <option value="p_value">p-value</option>
+          </select>
+        </div>
+
+        <div ref={mapRef} style={{ height: "100vh", width: "100%" }} />
+
+      </View>
+    );
   }
 
   // ======================================================
-  // 📱 MOBILE VERSION (WebView)
+  // 📱 MOBILE VERSION
   // ======================================================
+
   const htmlContent = `
-  <!DOCTYPE html>
-  <html>
-  <head>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
-    <style>
-      body { margin: 0; }
-      #map { height: 100vh; width: 100%; }
-    </style>
-  </head>
-  <body>
-    <div id="map"></div>
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css"/>
+<style>
+body { margin:0 }
+#map { height:100vh;width:100% }
+</style>
+</head>
 
-    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
-    <script>
-      const map = L.map("map", {
-        zoomControl: true,
-        attributionControl: false
-      });
+<body>
 
-      Promise.all([
-        fetch("gujarat_district.geojson").then(r => r.json()),
-        fetch("http://localhost:8000/geo/stats/state/1").then(r => r.json())
-      ]).then(([geo, stats]) => {
+<div id="map"></div>
 
-        const scoreMap = {};
-        stats.forEach(s => {
-          scoreMap[s.district_name.toLowerCase()] = s;
-        });
+<script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
 
-        const features = (geo.features || []).filter(
-          f => f.properties && f.properties.NAME_1 === "Gujarat"
-        );
+<script>
 
-        features.forEach(f => {
-          const name = (f.properties.NAME_2 || "").toLowerCase();
-          const info = scoreMap[name];
+const stateName="${stateName}";
+const stateId=${stateId};
+const metric="${metric}";
 
-          if (info) {
-            const hue = Math.round(info.score * 120);
-            f.properties._color = "hsl(" + hue + ",70%,55%)";
-            f.properties._score = info.score;
-            f.properties._count = info.count;
-          } else {
-            f.properties._color = "#eee";
-          }
-        });
+const map=L.map("map",{zoomControl:true,attributionControl:false});
 
-        const geoLayer = L.geoJSON(
-          { type: "FeatureCollection", features },
-          {
-            style: function(feature) {
-              return {
-                color: "#000",
-                weight: 1,
-                fillColor: feature.properties._color,
-                fillOpacity: 1
-              };
-            },
-            onEachFeature: function(feature, layer) {
-              layer.bindTooltip(
-                "<b>" + feature.properties.NAME_2 + "</b><br/>" +
-                "Score: " + (feature.properties._score || "-") + "<br/>" +
-                "Count: " + (feature.properties._count || "-")
-              );
-            }
-          }
-        ).addTo(map);
+Promise.all([
+fetch("gujarat_district.geojson").then(r=>r.json()),
+fetch("http://localhost:8000/geo/stats/state/"+stateId).then(r=>r.json())
+]).then(([geo,stats])=>{
 
-        map.fitBounds(geoLayer.getBounds());
-      });
-    </script>
-  </body>
-  </html>
-  `;
+const scoreMap={};
+stats.forEach(s=>{
+scoreMap[s.district_name.toLowerCase()]=s;
+});
+
+const features=(geo.features||[]).filter(
+f=>f.properties && f.properties.NAME_1===stateName
+);
+
+features.forEach(f=>{
+
+const name=(f.properties.NAME_2||"").toLowerCase();
+const info=scoreMap[name];
+
+if(info && info[metric]!==undefined){
+
+const value=info[metric];
+const normalized=Math.max(0,Math.min(1,value));
+const hue=Math.round(normalized*120);
+
+f.properties._color="hsl("+hue+",70%,55%)";
+f.properties._value=value;
+
+}else{
+
+f.properties._color="#eee";
+f.properties._value="-";
+
+}
+
+});
+
+const geoLayer=L.geoJSON(
+{type:"FeatureCollection",features},
+{
+style:function(feature){
+return{
+color:"#000",
+weight:1,
+fillColor:feature.properties._color,
+fillOpacity:1
+};
+},
+onEachFeature:function(feature,layer){
+layer.bindTooltip(
+"<b>"+feature.properties.NAME_2+"</b><br/>"+
+metric+": "+feature.properties._value
+);
+}
+}
+).addTo(map);
+
+if(features.length>0){
+map.fitBounds(geoLayer.getBounds());
+}
+
+});
+
+</script>
+
+</body>
+</html>
+`;
 
   return (
     <View style={styles.container}>
+
+      <View style={styles.dropdownContainer}>
+        <select
+          value={metric}
+          onChange={(e) => setMetric(e.target.value)}
+        >
+          <option value="total_years">Total_Years</option>
+          <option value="condition_years">Condition_Years</option>
+          <option value="rainfall_mean">Rainfall_mean</option>
+          <option value="rainfall_mean_when_condition_is_true">
+            Rainfall_mean_when_condition_is_true
+          </option>
+          <option value="difference_in_rainfall_percent">
+            Difference_in_Rainfall_percent
+          </option>
+          <option value="hits">Hits</option>
+          <option value="hit_rate">Hit_rate</option>
+          <option value="score">District_Score</option>
+          <option value="correlation_cofficient">
+            Correlation_cofficient
+          </option>
+          <option value="p_value">p-value</option>
+        </select>
+      </View>
+
       <WebView originWhitelist={["*"]} source={{ html: htmlContent }} />
+
     </View>
   );
 };
 
 const styles = StyleSheet.create({
   container: { flex: 1 },
+
+  dropdownContainer: {
+    position: "absolute",
+    top: 20,
+    right: 20,
+    zIndex: 1000,
+    backgroundColor: "white",
+    padding: 8,
+    borderRadius: 6,
+  },
+
+  dropdown: {
+    padding: 6,
+  },
 });

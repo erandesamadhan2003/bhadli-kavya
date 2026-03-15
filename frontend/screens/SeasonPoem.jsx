@@ -7,46 +7,40 @@ import {
   ActivityIndicator,
   TouchableOpacity,
 } from "react-native";
-import { useRoute, useNavigation } from "@react-navigation/native";
+import { useNavigation } from "@react-navigation/native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { usePoems } from "../hooks";
 
 export const SeasonPoem = () => {
-  const route = useRoute();
   const navigation = useNavigation();
-  const { season } = route.params || {};
-  const { getPoemsBySeason, isLoading, error } = usePoems();
-  const [poems, setPoems] = useState([]);
+  const { getPoems, isLoading, error } = usePoems();
+
+  const [allPoems, setAllPoems] = useState([]);
+  const [visibleCount, setVisibleCount] = useState(10);
 
   useEffect(() => {
     loadPoems();
-  }, [season]);
+  }, []);
 
   const loadPoems = async () => {
     try {
-      const response = await getPoemsBySeason(season, 5);
-      setPoems(response.poems || []);
+      const response = await getPoems();
+      setAllPoems(response.poems || []);
     } catch (err) {
       console.error("Failed to load poems:", err);
     }
   };
 
-  const getSeasonColor = () => {
-    const colors = {
-      Spring: "#4CAF50",
-      Summer: "#FFA800",
-      Monsoon: "#00BCD4",
-      Autumn: "#FF6B9D",
-      PreWinter: "#9C27B0",
-      Winter: "#2196F3",
-    };
-    return colors[season] || "#6B4CE6";
+  const loadMore = () => {
+    setVisibleCount((prev) => prev + 10);
   };
 
-  if (isLoading) {
+  const poems = allPoems.slice(0, visibleCount);
+
+  if (isLoading && allPoems.length === 0) {
     return (
       <View style={styles.centerContainer}>
-        <ActivityIndicator size="large" color={getSeasonColor()} />
+        <ActivityIndicator size="large" color="#6B4CE6" />
         <Text style={styles.loadingText}>Loading poems...</Text>
       </View>
     );
@@ -69,63 +63,65 @@ export const SeasonPoem = () => {
     <SafeAreaView style={styles.container}>
       <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* Header */}
-        <View style={[styles.header, { backgroundColor: getSeasonColor() }]}>
-          <Text style={styles.seasonTitle}>{season} Season</Text>
-          <Text style={styles.poemCount}>
-            {poems.length} {poems.length === 1 ? "Poem" : "Poems"} Found
+        <View style={styles.header}>
+          <Text style={styles.title}>All Poems</Text>
+          <Text style={styles.subtitle}>
+            Showing {poems.length} of {allPoems.length}
           </Text>
         </View>
 
-        {/* Poems List */}
+        {/* Poems */}
         <View style={styles.poemsContainer}>
-          {poems.length === 0 ? (
-            <View style={styles.emptyContainer}>
-              <Text style={styles.emptyText}>
-                No poems found for {season} season
-              </Text>
-              <Text style={styles.emptySubtext}>
-                Please check back later or explore other seasons
-              </Text>
-            </View>
-          ) : (
-            poems.map((poem, index) => (
-              <TouchableOpacity
-                key={poem.poem_id}
-                style={styles.poemCard}
-                activeOpacity={0.8}
-                onPress={() => {
-                  if (poem.location?.toLowerCase() === "gujarat") {
-                    navigation.navigate("MapScreen", {
-                      poemId: poem.poem_id,
-                      location: poem.location,
-                      poem: poem.poem,
-                      season: poem.season,
-                    });
-                  } else {
-                    alert("Map is available only for Gujarat poems 🌍");
-                  }
-                }}
-              >
-                <View style={styles.poemHeader}>
-                  <Text style={styles.poemNumber}>#{index + 1}</Text>
-                  <View style={styles.poemMeta}>
-                    <Text style={styles.metaText}>🌐 {poem.language}</Text>
-                    <Text style={styles.metaText}>📍 {poem.location}</Text>
-                  </View>
-                </View>
+          {poems.map((poem, index) => (
+            <TouchableOpacity
+              key={poem.poem_id}
+              style={styles.poemCard}
+              activeOpacity={0.8}
+              onPress={() => {
+                const loc = poem.location?.toLowerCase();
 
-                <Text style={styles.poemText}>{poem.poem}</Text>
+                if (loc === "gujarat" || loc === "uttar pradesh") {
+                  navigation.navigate("MapScreen", {
+                    poemId: poem.poem_id,
+                    location: poem.location,
+                    poem: poem.poem,
+                    season: poem.season,
+                  });
+                } else {
+                  alert(
+                    "Map is available only for Gujarat and Uttar Pradesh poems 🌍",
+                  );
+                }
+              }}
+            >
+              <View style={styles.poemHeader}>
+                <Text style={styles.poemNumber}>#{index + 1}</Text>
 
-                <View style={styles.poemFooter}>
-                  <Text style={styles.seasonTag}>{poem.season}</Text>
-                  <Text style={styles.dateText}>
-                    {new Date(poem.created_at).toLocaleDateString()}
-                  </Text>
+                <View style={styles.poemMeta}>
+                  <Text style={styles.metaText}>🌐 {poem.language}</Text>
+                  <Text style={styles.metaText}>📍 {poem.location}</Text>
                 </View>
-              </TouchableOpacity>
-            ))
-          )}
+              </View>
+
+              <Text style={styles.poemText}>{poem.poem}</Text>
+
+              <View style={styles.poemFooter}>
+                <Text style={styles.seasonTag}>{poem.season}</Text>
+
+                <Text style={styles.dateText}>
+                  {new Date(poem.created_at).toLocaleDateString()}
+                </Text>
+              </View>
+            </TouchableOpacity>
+          ))}
         </View>
+
+        {/* Load More */}
+        {visibleCount < allPoems.length && (
+          <TouchableOpacity style={styles.loadMoreButton} onPress={loadMore}>
+            <Text style={styles.loadMoreText}>Load More Poems</Text>
+          </TouchableOpacity>
+        )}
       </ScrollView>
     </SafeAreaView>
   );
@@ -136,32 +132,25 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: "#f5f7fa",
   },
-  centerContainer: {
-    flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
   scrollContent: {
-    flexGrow: 1,
-    paddingBottom: 30,
+    paddingBottom: 40,
   },
   header: {
     padding: 30,
+    backgroundColor: "#6B4CE6",
     alignItems: "center",
     borderBottomLeftRadius: 30,
     borderBottomRightRadius: 30,
   },
-  seasonTitle: {
-    fontSize: 32,
+  title: {
+    fontSize: 30,
     fontWeight: "bold",
     color: "#fff",
-    marginBottom: 8,
   },
-  poemCount: {
-    fontSize: 16,
+  subtitle: {
+    fontSize: 14,
     color: "#fff",
-    opacity: 0.9,
+    marginTop: 6,
   },
   poemsContainer: {
     padding: 20,
@@ -180,8 +169,7 @@ const styles = StyleSheet.create({
   poemHeader: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
-    marginBottom: 16,
+    marginBottom: 12,
   },
   poemNumber: {
     fontSize: 18,
@@ -194,22 +182,17 @@ const styles = StyleSheet.create({
   metaText: {
     fontSize: 12,
     color: "#666",
-    marginBottom: 4,
   },
   poemText: {
     fontSize: 16,
     lineHeight: 26,
     color: "#333",
-    marginBottom: 16,
     fontStyle: "italic",
+    marginBottom: 16,
   },
   poemFooter: {
     flexDirection: "row",
     justifyContent: "space-between",
-    alignItems: "center",
-    borderTopWidth: 1,
-    borderTopColor: "#f0f0f0",
-    paddingTop: 12,
   },
   seasonTag: {
     backgroundColor: "#F3EFFF",
@@ -224,42 +207,36 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: "#999",
   },
-  emptyContainer: {
+  loadMoreButton: {
+    marginHorizontal: 40,
+    backgroundColor: "#6B4CE6",
+    padding: 14,
+    borderRadius: 10,
     alignItems: "center",
-    padding: 40,
   },
-  emptyText: {
-    fontSize: 18,
+  loadMoreText: {
+    color: "#fff",
+    fontSize: 16,
     fontWeight: "600",
-    color: "#666",
-    marginBottom: 8,
-    textAlign: "center",
   },
-  emptySubtext: {
-    fontSize: 14,
-    color: "#999",
-    textAlign: "center",
+  centerContainer: {
+    flex: 1,
+    justifyContent: "center",
+    alignItems: "center",
   },
   loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: "#666",
+    marginTop: 10,
   },
   errorText: {
-    fontSize: 16,
-    color: "#d32f2f",
+    color: "red",
     marginBottom: 20,
-    textAlign: "center",
   },
   retryButton: {
     backgroundColor: "#6B4CE6",
-    paddingHorizontal: 24,
-    paddingVertical: 12,
+    padding: 12,
     borderRadius: 8,
   },
   retryText: {
     color: "#fff",
-    fontSize: 16,
-    fontWeight: "600",
   },
 });

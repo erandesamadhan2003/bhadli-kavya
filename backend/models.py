@@ -854,3 +854,43 @@ def get_stats_by_state(state_id: int):
     data = cursor.fetchall()
     conn.close()
     return data
+
+
+
+
+# get data according to drop down parameter
+
+def get_map_data(poem_id: str, metric: str):
+    conn = database.get_connection()
+    cursor = conn.cursor(dictionary=True)
+
+    allowed_metrics = [
+        "total_years",
+        "condition_years",
+        "rainfall_mean",
+        "rainfall_mean_when_condition_is_true",
+        "difference_in_rainfall_percent",
+        "hits",
+        "hit_rate",
+        "district_score",
+        "correlation_coefficient",
+        "p_value"
+    ]
+
+    if metric not in allowed_metrics:
+        return []
+
+    query = f"""
+    SELECT 
+        d.district_name,
+        ps.{metric} AS value
+    FROM poem_district_stats ps
+    JOIN districts d ON ps.district_id = d.id
+    WHERE ps.poem_id = %s
+    """
+
+    cursor.execute(query, (poem_id,))
+    data = cursor.fetchall()
+
+    conn.close()
+    return data

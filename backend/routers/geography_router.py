@@ -33,3 +33,8 @@ def get_all_stats(user_id: int = Depends(auth.get_current_user_id)):
 @router.get("/stats/state/{state_id}")
 def get_state_stats(state_id: int, user_id: int = Depends(auth.get_current_user_id)):
     return models.get_stats_by_state(state_id)
+
+
+@router.get("/map-data")
+def get_map_data(poem_id: str, metric: str, user_id: int = Depends(auth.get_current_user_id)):
+    return models.get_map_data(poem_id, metric)
